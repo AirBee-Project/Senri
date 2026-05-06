@@ -4,7 +4,7 @@ import { immer } from "zustand/middleware/immer";
 import type { Point } from "../types/point";
 
 interface PointState {
-  points: Point[];
+  points: Map<string, Point>;
 }
 
 interface PointAction {
@@ -20,14 +20,15 @@ export const usePointStore = create<PointState & PointAction>()(
   devtools(
     immer((set) => ({
       //初期状態
-      points: [],
+      points: new Map(),
       /**
        * 点を追加する
        */
       addPoint: (point) =>
         set(
           (state) => {
-            state.points.push({ ...point, id: crypto.randomUUID() });
+            const newId = crypto.randomUUID();
+            state.points.set(newId, { ...point, id: newId });
           },
           false,
           "addPoint",
@@ -38,7 +39,7 @@ export const usePointStore = create<PointState & PointAction>()(
       removePoint: (id) =>
         set(
           (state) => {
-            state.points = state.points.filter((point) => point.id !== id);
+            state.points.delete(id);
           },
           false,
           "removePoint",
@@ -49,9 +50,10 @@ export const usePointStore = create<PointState & PointAction>()(
       editPoint: (id, updates) =>
         set(
           (state) => {
-            state.points = state.points.map((point) =>
-              point.id === id ? { ...point, ...updates } : point,
-            );
+            const targetPoint = state.points.get(id);
+            if (targetPoint) {
+              state.points.set(id, { ...targetPoint, ...updates });
+            }
           },
           false,
           "editPoint",
