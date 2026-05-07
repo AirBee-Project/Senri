@@ -15,3 +15,23 @@ export const LineSchema = z.object({
  * 線の型定義
  */
 export type Line = z.infer<typeof LineSchema>;
+
+/**
+ * idを除いた線のスキーマ
+ */
+export const LineWithoutIdSchema = LineSchema.omit({ id: true });
+
+/**
+ * idを除いた線の型定義
+ */
+export type LineWithoutId = z.infer<typeof LineWithoutIdSchema>;
+
+/**
+ * 部分更新用のスキーマ
+ */
+export const LinePartialSchema = LineSchema.partial();
+
+/**
+ * 部分更新用の型定義
+ */
+export type LinePartial = z.infer<typeof LinePartialSchema>;
