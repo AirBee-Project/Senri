@@ -41,3 +41,5 @@ bun run build
 | `bun run check` | コードの整形、インポート整理、自動修正 |
 | `bun run format` | コードの自動整形 |
 | `bun run lint` | ルール違反のチェック |
+| `bun run test` | Vitestを用いたテストの実行 |
+

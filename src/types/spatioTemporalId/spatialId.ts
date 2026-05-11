@@ -17,7 +17,12 @@ type IndexValue = z.infer<typeof SpatialIndexSchema>;
  */
 export const SpatialIdSchema = z
   .object({
-    z: z.number().int().positive(),
+    z: z
+      .number()
+      .int()
+      .positive()
+      .min(0, "ズームレベルは0以上で指定してください。")
+      .max(30, "ズームレベルは30以下で指定してください。"),
     f: SpatialIndexSchema,
     x: SpatialIndexSchema,
     y: SpatialIndexSchema,
