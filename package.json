@@ -10,7 +10,7 @@
     "format": "biome format --write .",
     "check": "biome check --write .",
     "lint": "biome lint .",
-    "ci": "biome check . && bun run test",
+    "ci": "bun run format && biome lint . && bun run test",
     "test": "vitest run"
   },
   "dependencies": {

@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { fa } from "zod/locales";
 import { SpatialIdSchema } from "./spatialId";
 
 describe("SpatialIdSchema", () => {

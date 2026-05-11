@@ -20,7 +20,6 @@ export const SpatialIdSchema = z
     z: z
       .number()
       .int()
-      .positive()
       .min(0, "ズームレベルは0以上で指定してください。")
       .max(30, "ズームレベルは30以下で指定してください。"),
     f: SpatialIndexSchema,
