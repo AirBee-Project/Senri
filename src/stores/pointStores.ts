@@ -2,8 +2,11 @@ import { enableMapSet } from "immer";
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
-import type { Point } from "../types/point";
-import { PointPartialSchema, PointWithoutIdSchema } from "../types/point";
+import type { Point } from "../types/geometry/point";
+import {
+  PointPartialSchema,
+  PointWithoutIdSchema,
+} from "../types/geometry/point";
 
 enableMapSet();
 

@@ -2,8 +2,8 @@ import { enableMapSet } from "immer";
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
-import type { Line } from "../types/line";
-import { LinePartialSchema, LineWithoutIdSchema } from "../types/line";
+import type { Line } from "../types/geometry/line";
+import { LinePartialSchema, LineWithoutIdSchema } from "../types/geometry/line";
 
 enableMapSet();
 
