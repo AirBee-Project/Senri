@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TemporalIdSchema } from "./temporalId";
 
 /**
  * 空間IDの各次元のインデックス値
@@ -25,6 +26,7 @@ export const SpatialIdSchema = z
     f: SpatialIndexSchema,
     x: SpatialIndexSchema,
     y: SpatialIndexSchema,
+    temporalId: TemporalIdSchema.optional(),
   })
   .superRefine((data, ctx) => {
     validateIndexRange(
