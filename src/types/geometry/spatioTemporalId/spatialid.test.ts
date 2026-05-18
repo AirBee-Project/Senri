@@ -123,4 +123,36 @@ describe("SpatialIdSchema", () => {
       expect(result.success).toBe(true);
     });
   });
+
+  describe("時間表現 (オプション)", () => {
+    it("空間IDと時間IDを両方パースできる", () => {
+      const result = SpatialIdSchema.safeParse({
+        z: 3,
+        f: 0,
+        x: 4,
+        y: 7,
+        temporalId: {
+          i: 1,
+          t: [100, 200],
+        },
+      });
+
+      expect(result.success).toBe(true);
+    });
+
+    it("時間IDが不正なら失敗する", () => {
+      const result = SpatialIdSchema.safeParse({
+        z: 3,
+        f: 0,
+        x: 4,
+        y: 7,
+        temporalId: {
+          i: 1,
+          t: [200, 100],
+        },
+      });
+
+      expect(result.success).toBe(false);
+    });
+  });
 });

@@ -2,8 +2,6 @@ import { err, ok, type Result } from "../../types/core/result";
 import {
   type SpatialId,
   SpatialIdSchema,
-  type SpatioTemporalId,
-  SpatioTemporalIdSchema,
   type TemporalId,
   TemporalIdSchema,
 } from "../../types/geometry/spatioTemporalId";
@@ -11,7 +9,7 @@ import {
 /**
  * パース関数のエラー型
  */
-export type ParseStringSpatioTemporalIdError = {
+export type ParseStringSpatialIdError = {
   /** エラーとなった文字列 */
   content: string;
   /** エラーメッセージ */
@@ -21,28 +19,28 @@ export type ParseStringSpatioTemporalIdError = {
 /**
  * パース関数の結果型
  */
-export type ParseStringSpatioTemporalIdResult = {
-  /** パースに成功した時空間ID */
-  success: SpatioTemporalId[];
+export type ParseStringSpatialIdResult = {
+  /** パースに成功した空間ID */
+  success: SpatialId[];
   /** エラーの情報 */
-  errors: ParseStringSpatioTemporalIdError[];
+  errors: ParseStringSpatialIdError[];
 };
 
 /**
- * 大量の時空間IDの文字列表記から
- * {@link SpatioTemporalId SpatioTemporalId型}
+ * 大量の空間IDの文字列表記から
+ * {@link SpatialId SpatialId型}
  * へのパースを行う関数
  */
-export function parseStringSpatioTemporalId(
+export function parseStringSpatialId(
   target: string,
-): ParseStringSpatioTemporalIdResult {
+): ParseStringSpatialIdResult {
   // 結果の初期化
-  const result: ParseStringSpatioTemporalIdResult = {
+  const result: ParseStringSpatialIdResult = {
     success: [],
     errors: [],
   };
 
-  //カンマ区切り
+  // カンマ区切り
   const rawTokens = target
     .split(",")
     .map((s) => s.trim())
@@ -74,8 +72,8 @@ export function parseStringSpatioTemporalId(
 
     // 時間IDがない場合は空間IDのみで結果に挿入
     if (temporalStr === undefined) {
-      const spResult = SpatioTemporalIdSchema.safeParse({
-        spatialId: spatialIdData,
+      const spResult = SpatialIdSchema.safeParse({
+        ...spatialIdData,
       });
 
       if (spResult.success) {
@@ -97,17 +95,17 @@ export function parseStringSpatioTemporalId(
     }
     const temporalIdData = temporalIdResult.result;
 
-    const spatioTemporalIdResult = SpatioTemporalIdSchema.safeParse({
-      spatialId: spatialIdData,
+    const spatialIdResultWithTime = SpatialIdSchema.safeParse({
+      ...spatialIdData,
       temporalId: temporalIdData,
     });
 
-    if (spatioTemporalIdResult.success) {
-      result.success.push(spatioTemporalIdResult.data);
+    if (spatialIdResultWithTime.success) {
+      result.success.push(spatialIdResultWithTime.data);
     } else {
       result.errors.push({
         content: token,
-        message: spatioTemporalIdResult.error.message,
+        message: spatialIdResultWithTime.error.message,
       });
     }
   }
