@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import type { SpatialIdGroup } from "../types/geometry/spatialIdGroup";
+import type { SpatialIdGroup } from "../types/geometry/spatioTemporalId/spatialIdGroup";
 import { useSpatialIdGroupStore } from "./spatialIdGroupStores";
 
 describe("useSpatialIdGroupStore", () => {

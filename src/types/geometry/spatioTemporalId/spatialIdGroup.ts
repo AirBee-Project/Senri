@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { RGBAColorSchema } from "./color";
-import { SpatialIdSchema } from "./spatioTemporalId/spatialId";
+import { RGBAColorSchema } from "../color";
+import { SpatialIdSchema } from "./spatialId";
 
 export const SpatialIdGroupSchema = z.object({
   id: z.string(),

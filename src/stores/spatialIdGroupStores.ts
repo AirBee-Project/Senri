@@ -2,11 +2,11 @@ import { enableMapSet } from "immer";
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
-import type { SpatialIdGroup } from "../types/geometry/spatialIdGroup";
+import type { SpatialIdGroup } from "../types/geometry/spatioTemporalId/spatialIdGroup";
 import {
   SpatialIdGroupPartialSchema,
   SpatialIdGroupWithoutIdSchema,
-} from "../types/geometry/spatialIdGroup";
+} from "../types/geometry/spatioTemporalId/spatialIdGroup";
 
 enableMapSet();
 
