@@ -98,11 +98,6 @@ describe("parseStringSpatialId", () => {
     );
   });
 
-  it("空間インデックスが範囲外の場合はエラーを返すこと", () => {
-    // 削除：ZodによるZ/F/X/Yの相関検証はここでは行わないため、
-    // このテストは Store や Zod Schema 側のテストに移動しました。
-  });
-
   it("日本語などの全角文字が混入している場合はエラーを返すこと", () => {
     // 空間ID部分に日本語
     const result1 = parseStringSpatialId("20/あ/33/44");
