@@ -1,10 +1,5 @@
 import { err, ok, type Result } from "../../types/core/result";
-import {
-  type SpatialId,
-  SpatialIdSchema,
-  type TemporalId,
-  TemporalIdSchema,
-} from "../../types/geometry/spatioTemporalId";
+import type { SpatialId } from "../../types/geometry/spatioTemporalId";
 
 /**
  * パース関数のエラー型
@@ -20,7 +15,7 @@ export type ParseStringSpatialIdError = {
  * パース関数の結果型
  */
 export type ParseStringSpatialIdResult = {
-  /** パースに成功した空間ID */
+  /** 構造的にパースに成功した空間ID（Zod未検証） */
   success: SpatialId[];
   /** エラーの情報 */
   errors: ParseStringSpatialIdError[];
@@ -28,8 +23,7 @@ export type ParseStringSpatialIdResult = {
 
 /**
  * 大量の空間IDの文字列表記から
- * {@link SpatialId SpatialId型}
- * へのパースを行う関数
+ * 生のオブジェクトへのパースを行う関数
  */
 export function parseStringSpatialId(
   target: string,
@@ -72,15 +66,7 @@ export function parseStringSpatialId(
 
     // 時間IDがない場合は空間IDのみで結果に挿入
     if (temporalStr === undefined) {
-      const spResult = SpatialIdSchema.safeParse({
-        ...spatialIdData,
-      });
-
-      if (spResult.success) {
-        result.success.push(spResult.data);
-      } else {
-        result.errors.push({ content: token, message: spResult.error.message });
-      }
+      result.success.push({ ...spatialIdData });
       continue;
     }
 
@@ -95,19 +81,10 @@ export function parseStringSpatialId(
     }
     const temporalIdData = temporalIdResult.result;
 
-    const spatialIdResultWithTime = SpatialIdSchema.safeParse({
+    result.success.push({
       ...spatialIdData,
       temporalId: temporalIdData,
     });
-
-    if (spatialIdResultWithTime.success) {
-      result.success.push(spatialIdResultWithTime.data);
-    } else {
-      result.errors.push({
-        content: token,
-        message: spatialIdResultWithTime.error.message,
-      });
-    }
   }
 
   return result;
@@ -116,7 +93,9 @@ export function parseStringSpatialId(
 /**
  * 空間IDのパース関数
  */
-function parseSpatialPart(spatialStr: string): Result<SpatialId, string> {
+function parseSpatialPart(
+  spatialStr: string,
+): Result<Omit<SpatialId, "temporalId">, string> {
   const elements = spatialStr.split("/");
   if (elements.length !== 4) {
     return err(
@@ -143,24 +122,20 @@ function parseSpatialPart(spatialStr: string): Result<SpatialId, string> {
     return err(`yは${y.error}`);
   }
 
-  const spatialIdResult = SpatialIdSchema.safeParse({
+  return ok({
     z: z,
     f: f.result,
     x: x.result,
     y: y.result,
   });
-
-  if (!spatialIdResult.success) {
-    return err(spatialIdResult.error.message);
-  }
-
-  return ok(spatialIdResult.data);
 }
 
 /**
  * 時間IDのパース関数
  */
-function parseTemporalPart(temporalStr: string): Result<TemporalId, string> {
+function parseTemporalPart(
+  temporalStr: string,
+): Result<Exclude<SpatialId["temporalId"], undefined>, string> {
   const elements = temporalStr.split("/");
   if (elements.length !== 2) {
     return err("時間IDの要素数が不正です。{i}/{t} の形式で指定してください。");
@@ -176,16 +151,10 @@ function parseTemporalPart(temporalStr: string): Result<TemporalId, string> {
     return err(`tは${t.error}`);
   }
 
-  const temporalIdResult = TemporalIdSchema.safeParse({
+  return ok({
     i: i,
     t: t.result,
   });
-
-  if (!temporalIdResult.success) {
-    return err(temporalIdResult.error.message);
-  }
-
-  return ok(temporalIdResult.data);
 }
 
 /**

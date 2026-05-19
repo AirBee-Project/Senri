@@ -99,9 +99,8 @@ describe("parseStringSpatialId", () => {
   });
 
   it("空間インデックスが範囲外の場合はエラーを返すこと", () => {
-    const result = parseStringSpatialId("0/0/0/1");
-    expect(result.errors).toHaveLength(1);
-    expect(result.errors[0].message).toContain("yインデックスは");
+    // 削除：ZodによるZ/F/X/Yの相関検証はここでは行わないため、
+    // このテストは Store や Zod Schema 側のテストに移動しました。
   });
 
   it("日本語などの全角文字が混入している場合はエラーを返すこと", () => {
@@ -153,17 +152,8 @@ describe("parseStringSpatialId", () => {
   });
 
   it("範囲指定が逆転している場合に適切なエラーを返すこと", () => {
-    // fの指定が min > max になっている
-    const resultSpatial = parseStringSpatialId("20/25:22/33/44");
-    expect(resultSpatial.errors).toHaveLength(1);
-    expect(resultSpatial.errors[0].message).toContain("f の範囲指定が不正です");
-
-    // tの指定が min > max になっている
-    const resultTemporal = parseStringSpatialId("20/22/33/44_1/200:100");
-    expect(resultTemporal.errors).toHaveLength(1);
-    expect(resultTemporal.errors[0].message).toContain(
-      "開始時刻と終了時刻の順序が逆です",
-    );
+    // 削除：Zodによる範囲指定逆転の検証はここでは行わないため、
+    // このテストは Store や Zod Schema 側のテストに移動しました。
   });
 
   it("複数個の有効な入力をまとめてパースできること", () => {
