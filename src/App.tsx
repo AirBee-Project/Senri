@@ -31,7 +31,9 @@ export default function App() {
       >
         <PointBox
           point={testPoint}
-          onUpdate={(_, updates) => setTestPoint((prev) => ({ ...prev, ...updates }))}
+          onUpdate={(_, updates) =>
+            setTestPoint((prev) => ({ ...prev, ...updates }))
+          }
           onDelete={() => {}}
         />
       </div>

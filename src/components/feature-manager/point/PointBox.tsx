@@ -30,7 +30,10 @@ export default function PointBox({ point, onUpdate, onDelete }: PointBoxProps) {
     <div className={styles.itemBox}>
       <div className={styles.inputBox}>
         <div className={styles.inputElement}>
-          <label htmlFor={`lat-input-${point.id}`} className={styles.inputLabel}>
+          <label
+            htmlFor={`lat-input-${point.id}`}
+            className={styles.inputLabel}
+          >
             緯度
           </label>
           <input
@@ -51,7 +54,10 @@ export default function PointBox({ point, onUpdate, onDelete }: PointBoxProps) {
         </div>
 
         <div className={styles.inputElement}>
-          <label htmlFor={`lng-input-${point.id}`} className={styles.inputLabel}>
+          <label
+            htmlFor={`lng-input-${point.id}`}
+            className={styles.inputLabel}
+          >
             経度
           </label>
           <input
@@ -72,7 +78,10 @@ export default function PointBox({ point, onUpdate, onDelete }: PointBoxProps) {
         </div>
 
         <div className={styles.inputElement}>
-          <label htmlFor={`alt-input-${point.id}`} className={styles.inputLabel}>
+          <label
+            htmlFor={`alt-input-${point.id}`}
+            className={styles.inputLabel}
+          >
             高度
           </label>
           <input
