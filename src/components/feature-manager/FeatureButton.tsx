@@ -1,5 +1,5 @@
 import type { Icon, IconProps } from "@tabler/icons-react";
-import styles from "./FeatureButton.module.css";
+import styles from "./FeatureButton.module.scss";
 
 type FeatureButtonProps = {
   /** Featureの名前

@@ -1,7 +1,7 @@
 import { IconTarget, IconTrash } from "@tabler/icons-react";
 import { useState } from "react";
 import type { Point } from "../../../types/geometry/point";
-import styles from "./PointBox.module.css";
+import styles from "./PointBox.module.scss";
 
 type PointBoxProps = {
   point: Point;
@@ -101,7 +101,7 @@ export default function PointBox({ point, onUpdate, onDelete }: PointBoxProps) {
           className={`${styles.iconButton} ${styles.deleteButton}`}
           aria-label="点を削除"
         >
-          <IconTrash size={16} />
+          <IconTrash />
         </button>
 
         <button
@@ -109,15 +109,21 @@ export default function PointBox({ point, onUpdate, onDelete }: PointBoxProps) {
           className={styles.iconButton}
           aria-label="点に移動"
         >
-          <IconTarget size={16} />
+          <IconTarget />
         </button>
 
-        <div
-          className={styles.colorSwatch}
-          style={{
-            backgroundColor: `rgba(${color.r}, ${color.g}, ${color.b}, ${(color.a ?? 255) / 255})`,
-          }}
-        />
+        <button
+          type="button"
+          className={styles.colorButton}
+          aria-label="色を変更"
+        >
+          <div
+            className={styles.colorSwatch}
+            style={{
+              backgroundColor: `rgba(${color.r}, ${color.g}, ${color.b}, ${(color.a ?? 255) / 255})`,
+            }}
+          />
+        </button>
       </div>
     </div>
   );
