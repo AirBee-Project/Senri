@@ -1,5 +1,5 @@
 import type { Icon, IconProps } from "@tabler/icons-react";
-import styles from "./DrowModeButton.module.css";
+import styles from "./DrowModeButton.module.scss";
 
 type DrowmodeButtonProps = {
   /** アイコン */
