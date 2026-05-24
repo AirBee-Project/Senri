@@ -8,7 +8,7 @@ interface FeatureManagerState {
 }
 
 /**
- * ツールバーの表示状態を管理するストア
+ * パネルの表示状態を管理するストア
  */
 export const useFeatureManagerStore = create<FeatureManagerState>((set) => ({
   activeMode: null,
