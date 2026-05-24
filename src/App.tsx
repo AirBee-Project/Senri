@@ -30,6 +30,7 @@ export default function App() {
         }}
       >
         <PointBox
+          key={testPoint.id}
           point={testPoint}
           onUpdate={(_, updates) =>
             setTestPoint((prev) => ({ ...prev, ...updates }))

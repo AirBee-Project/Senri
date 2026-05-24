@@ -1,5 +1,5 @@
 import { IconTarget, IconTrash } from "@tabler/icons-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { Point } from "../../../types/geometry/point";
 import styles from "./PointBox.module.css";
 
@@ -16,13 +16,6 @@ export default function PointBox({ point, onUpdate, onDelete }: PointBoxProps) {
   const [latText, setLatText] = useState(point.latitude.toString());
   const [lngText, setLngText] = useState(point.longitude.toString());
   const [altText, setAltText] = useState(point.altitude.toString());
-
-  useEffect(() => {
-    point.id;
-    setLatText(point.latitude.toString());
-    setLngText(point.longitude.toString());
-    setAltText(point.altitude.toString());
-  }, [point.id, point.latitude, point.longitude, point.altitude]);
 
   const color = point.color ?? { r: 15, g: 118, b: 110, a: 255 };
 
@@ -42,8 +35,8 @@ export default function PointBox({ point, onUpdate, onDelete }: PointBoxProps) {
             className={styles.inputField}
             value={latText}
             step="any"
-            min={-90}
-            max={90}
+            min={-85.0511}
+            max={85.0511}
             onChange={(e) => setLatText(e.target.value)}
             onBlur={() => {
               const num = parseFloat(latText) || 0;
