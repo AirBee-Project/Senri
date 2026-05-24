@@ -1,1 +1,1 @@
-export { default as DrowmodeManager } from "./DrowModeManager";
+export { default as DrowModeToolbar } from "./DrowModeToolbar";
