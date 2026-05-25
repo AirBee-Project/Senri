@@ -1,7 +1,7 @@
 import type { Icon, IconProps } from "@tabler/icons-react";
-import styles from "./DrowModeButton.module.css";
+import styles from "./DrawModeButton.module.scss";
 
-type DrowmodeButtonProps = {
+type DrawModeButtonProps = {
   /** アイコン */
   icon: React.ForwardRefExoticComponent<IconProps & React.RefAttributes<Icon>>;
 
@@ -15,13 +15,13 @@ type DrowmodeButtonProps = {
 };
 
 /**
- * @description DrowmodeManagerの個別のボタンを作成するためのコンポーネント。
+ * @description DrawModeManagerの個別のボタンを作成するためのコンポーネント。
  */
-export default function DrowModeButton({
+export default function DrawModeButton({
   icon: Icon,
   isActive,
   onClick,
-}: DrowmodeButtonProps) {
+}: DrawModeButtonProps) {
   return (
     <button
       type="button"
