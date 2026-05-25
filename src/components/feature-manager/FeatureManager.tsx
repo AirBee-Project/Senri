@@ -1,5 +1,5 @@
 import FeatureToolbar from "./FeatureToolbar";
-import { useFeatureManagerStore } from "./featureManagerStores";
+import { useFeatureManagerStore } from "./featureManagerStore";
 import { PointPanel } from "./point";
 
 /**

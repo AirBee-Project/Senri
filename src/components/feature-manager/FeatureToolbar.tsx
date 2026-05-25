@@ -1,7 +1,7 @@
 import { IconCube, IconLine, IconPoint } from "@tabler/icons-react";
 import FeatureButton from "./FeatureButton";
 import styles from "./FeatureToolbar.module.scss";
-import { useFeatureManagerStore } from "./featureManagerStores";
+import { useFeatureManagerStore } from "./featureManagerStore";
 
 /**
  * @description 地図上に点、線、空間IDなどを追加するためのツールバー。画面左上に表示される。
