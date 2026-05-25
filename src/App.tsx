@@ -1,7 +1,7 @@
 import DeckGL from "@deck.gl/react";
 import { Map as MapGL } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { DrowModeToolbar } from "./components/drow-mode-manager";
+import { DrawModeToolbar } from "./components/draw-mode-manager";
 import { FeatureManager } from "./components/feature-manager";
 
 export default function App() {
@@ -21,7 +21,7 @@ export default function App() {
           right: "1rem",
         }}
       >
-        <DrowModeToolbar />
+        <DrawModeToolbar />
       </div>
       {/* map */}
       <DeckGL
