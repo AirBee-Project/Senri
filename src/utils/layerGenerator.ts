@@ -16,8 +16,10 @@ function generatePointLayer(points: Point[]): ScatterplotLayer<Point> {
     getPosition: (d) => [d.longitude, d.latitude, d.altitude],
     getRadius: 10,
     getFillColor: (d) => {
-      const c = d.color ?? { r: 15, g: 118, b: 110, a: 255 };
-      return [c.r, c.g, c.b, c.a ?? 255];
+      if (d.color) {
+        return [d.color.r, d.color.g, d.color.b, d.color.a];
+      }
+      return [15, 118, 110, 255];
     },
     billboard: true,
   });
