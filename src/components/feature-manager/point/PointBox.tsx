@@ -2,6 +2,8 @@ import { IconTarget, IconTrash } from "@tabler/icons-react";
 import { useState } from "react";
 import type { Point } from "../../../types/geometry/point";
 import styles from "./PointBox.module.scss";
+import IconButton from "../common-ui/IconButton";
+import ColorButton from "../common-ui/ColorButton";
 
 type PointBoxProps = {
   point: Point;
@@ -95,35 +97,30 @@ export default function PointBox({ point, onUpdate, onDelete }: PointBoxProps) {
       </div>
 
       <div className={styles.actionGroup}>
-        <button
-          type="button"
+        <IconButton
           onClick={() => onDelete(point.id)}
-          className={`${styles.iconButton} ${styles.deleteButton}`}
-          aria-label="点を削除"
+          ariaLabel="点を削除"
+          variant="danger"
         >
           <IconTrash />
-        </button>
+        </IconButton>
 
-        <button
-          type="button"
-          className={styles.iconButton}
-          aria-label="点に移動"
+        <IconButton
+          onClick={() => {
+            // todo
+          }}
+          ariaLabel="点に移動"
         >
           <IconTarget />
-        </button>
+        </IconButton>
 
-        <button
-          type="button"
-          className={styles.colorButton}
-          aria-label="色を変更"
-        >
-          <div
-            className={styles.colorSwatch}
-            style={{
-              backgroundColor: `rgba(${color.r}, ${color.g}, ${color.b}, ${(color.a ?? 255) / 255})`,
-            }}
-          />
-        </button>
+        <ColorButton
+          color={color}
+          ariaLabel="色を変更"
+          onClick={() => {
+            // todo
+          }}
+        />
       </div>
     </div>
   );
