@@ -8,18 +8,17 @@ type CommonPanelProps = {
 /**
  * 各featureで使用するパネル
  */
-export default function CommonPanel({ children, footerButton }: CommonPanelProps) {
+export default function CommonPanel({
+  children,
+  footerButton,
+}: CommonPanelProps) {
   return (
     <div className={styles.panelContainer}>
       <div className={styles.scrollArea}>
-        <div className={styles.itemList}>
-          {children}
-        </div>
+        <div className={styles.itemList}>{children}</div>
       </div>
 
-      <div className={styles.footer}>
-        {footerButton}
-      </div>
+      <div className={styles.footer}>{footerButton}</div>
     </div>
   );
 }
