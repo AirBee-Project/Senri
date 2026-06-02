@@ -1,7 +1,7 @@
-import { IconPlus } from "@tabler/icons-react";
 import { usePointStore } from "../../../stores/pointStores";
 import type { Point } from "../../../types/geometry/point";
-import sharedStyles from "../panel.module.scss";
+import CommonPanel from "../common-ui/Panel";
+import FooterAddButton from "../common-ui/FooterAddButton";
 import PointBox from "./PointBox";
 
 /**
@@ -34,29 +34,17 @@ export default function PointPanel() {
   };
 
   return (
-    <div className={sharedStyles.panelContainer}>
-      <div className={sharedStyles.scrollArea}>
-        <div className={sharedStyles.itemList}>
-          {pointsList.map((point) => (
-            <PointBox
-              key={point.id}
-              point={point}
-              onUpdate={handleUpdate}
-              onDelete={handleDelete}
-            />
-          ))}
-        </div>
-      </div>
-
-      <div className={sharedStyles.footer}>
-        <button
-          type="button"
-          onClick={handleAdd}
-          className={sharedStyles.addButton}
-        >
-          <IconPlus size={14} /> 点を追加
-        </button>
-      </div>
-    </div>
+    <CommonPanel
+      footerButton={<FooterAddButton onClick={handleAdd} label="点を追加" />}
+    >
+      {pointsList.map((point) => (
+        <PointBox
+          key={point.id}
+          point={point}
+          onUpdate={handleUpdate}
+          onDelete={handleDelete}
+        />
+      ))}
+    </CommonPanel>
   );
 }
