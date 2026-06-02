@@ -3,7 +3,7 @@ import styles from "./FooterAddButton.module.scss";
 
 type FooterAddButtonProps = {
   onClick: () => void;
-  label: string;
+  ariaLabel: string;
 };
 
 /**
@@ -11,16 +11,16 @@ type FooterAddButtonProps = {
  */
 export default function FooterAddButton({
   onClick,
-  label,
+  ariaLabel,
 }: FooterAddButtonProps) {
   return (
     <button
       type="button"
       onClick={onClick}
       className={styles.addButton}
-      aria-label={label}
+      aria-label={ariaLabel}
     >
-      <IconPlus size={14} /> {label}
+      <IconPlus size={14} /> {ariaLabel}
     </button>
   );
 }

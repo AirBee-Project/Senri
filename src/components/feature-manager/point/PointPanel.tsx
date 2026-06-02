@@ -35,7 +35,9 @@ export default function PointPanel() {
 
   return (
     <CommonPanel
-      footerButton={<FooterAddButton onClick={handleAdd} label="点を追加" />}
+      footerButton={
+        <FooterAddButton onClick={handleAdd} ariaLabel="点を追加" />
+      }
     >
       {pointsList.map((point) => (
         <PointBox
