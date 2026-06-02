@@ -32,10 +32,8 @@ export default function PositionInput({
   return (
     <div className={styles.inputBox}>
       <div className={styles.inputElement}>
-        <label
-          htmlFor={`lat-input-${id}`}
-          className={styles.inputLabel}>
-            緯度
+        <label htmlFor={`lat-input-${id}`} className={styles.inputLabel}>
+          緯度
         </label>
         <input
           id={`lat-input-${id}`}
@@ -56,10 +54,8 @@ export default function PositionInput({
       </div>
 
       <div className={styles.inputElement}>
-        <label
-          htmlFor={`lng-input-${id}`}
-          className={styles.inputLabel}>
-            経度
+        <label htmlFor={`lng-input-${id}`} className={styles.inputLabel}>
+          経度
         </label>
         <input
           id={`lng-input-${id}`}
@@ -80,10 +76,8 @@ export default function PositionInput({
       </div>
 
       <div className={styles.inputElement}>
-        <label
-          htmlFor={`alt-input-${id}`}
-          className={styles.inputLabel}>
-            高度
+        <label htmlFor={`alt-input-${id}`} className={styles.inputLabel}>
+          高度
         </label>
         <input
           id={`alt-input-${id}`}
