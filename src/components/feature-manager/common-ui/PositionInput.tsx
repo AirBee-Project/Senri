@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styles from "./PositionInput.module.scss";
 
 type PositionInputProps = {
@@ -28,6 +28,16 @@ export default function PositionInput({
   const [latText, setLatText] = useState(latitude.toString());
   const [lngText, setLngText] = useState(longitude.toString());
   const [altText, setAltText] = useState(altitude.toString());
+
+  useEffect(() => {
+    setLatText(latitude.toString());
+  }, [latitude]);
+  useEffect(() => {
+    setLngText(longitude.toString());
+  }, [longitude]);
+  useEffect(() => {
+    setAltText(altitude.toString());
+  }, [altitude]);
 
   return (
     <div className={styles.inputBox}>
