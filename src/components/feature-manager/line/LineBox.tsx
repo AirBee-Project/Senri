@@ -17,6 +17,7 @@ type LineBoxProps = {
  */
 export default function LineBox({ line, onUpdate, onDelete }: LineBoxProps) {
   const color = line.color ?? { r: 15, g: 118, b: 110, a: 255 };
+  const dotColor = `rgba(${color.r}, ${color.g}, ${color.b}, ${color.a / 255})`;
 
   return (
     <FeatureItemBox
@@ -50,24 +51,46 @@ export default function LineBox({ line, onUpdate, onDelete }: LineBoxProps) {
       }
     >
       <div className={styles.lineContent}>
-        <PositionInput
-          id={`${line.id}-start`}
-          latitude={line.start.latitude}
-          longitude={line.start.longitude}
-          altitude={line.start.altitude}
-          onChange={(updates) =>
-            onUpdate(line.id, { start: { ...line.start, ...updates } })
-          }
-        />
-        <PositionInput
-          id={`${line.id}-end`}
-          latitude={line.end.latitude}
-          longitude={line.end.longitude}
-          altitude={line.end.altitude}
-          onChange={(updates) =>
-            onUpdate(line.id, { end: { ...line.end, ...updates } })
-          }
-        />
+        <div className={styles.pointContainer}>
+          <span className={styles.pointLabel}>
+            <span
+              className={styles.dot}
+              style={{ backgroundColor: dotColor }}
+            />
+            始点
+          </span>
+          <PositionInput
+            id={`${line.id}-start`}
+            latitude={line.start.latitude}
+            longitude={line.start.longitude}
+            altitude={line.start.altitude}
+            onChange={(updates) =>
+              onUpdate(line.id, { start: { ...line.start, ...updates } })
+            }
+          />
+        </div>
+
+        {/* 始点と終点を結ぶ線 */}
+        <div className={styles.connector} />
+
+        <div className={styles.pointContainer}>
+          <span className={styles.pointLabel}>
+            <span
+              className={styles.dot}
+              style={{ backgroundColor: dotColor }}
+            />
+            終点
+          </span>
+          <PositionInput
+            id={`${line.id}-end`}
+            latitude={line.end.latitude}
+            longitude={line.end.longitude}
+            altitude={line.end.altitude}
+            onChange={(updates) =>
+              onUpdate(line.id, { end: { ...line.end, ...updates } })
+            }
+          />
+        </div>
       </div>
     </FeatureItemBox>
   );
