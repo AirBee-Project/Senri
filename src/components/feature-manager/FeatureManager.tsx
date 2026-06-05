@@ -3,6 +3,7 @@ import FeatureButton from "./FeatureButton";
 import toolbarStyles from "./FeatureToolbar.module.scss";
 import { useFeatureManagerStore } from "./featureManagerStore";
 import { PointPanel } from "./point";
+import { LinePanel } from "./line";
 
 /**
  * 左上のツールバーと、その下で切り替わるパネルを管理する
@@ -34,6 +35,7 @@ export default function FeatureManager() {
         />
       </div>
       {activeMode === "point" && <PointPanel />}
+      {activeMode === "line" && <LinePanel />}
     </div>
   );
 }
