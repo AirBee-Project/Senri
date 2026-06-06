@@ -108,7 +108,7 @@ function useDrawTimeline(
     ctx.fillStyle = "#4b5563";
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
-    ctx.font = "10px 'Noto Sans JP', sans-serif";
+    ctx.font = "600 10px 'Noto Sans JP', sans-serif";
 
     const tickInterval = getTickInterval(viewDuration);
 
