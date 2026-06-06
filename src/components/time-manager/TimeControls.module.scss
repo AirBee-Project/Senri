@@ -8,7 +8,7 @@
 .playButton {
   width: 2.75rem;
   height: 2.75rem;
-  background: #0f766e; // ティールカラー
+  background: #0f766e;
   border-radius: 9999px;
   box-shadow:
     0 4px 6px -1px rgba(15, 118, 110, 0.2),
@@ -68,7 +68,6 @@
 
   &:hover {
     background: #f9fafb;
-    border-color: #e5e7eb;
   }
 
   &:focus {
