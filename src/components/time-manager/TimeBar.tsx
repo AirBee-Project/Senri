@@ -91,10 +91,15 @@ function useDrawTimeline(
     if (!canvas || !ctx) return;
 
     const { width, height } = dimensions;
-    canvas.width = width;
-    canvas.height = height;
+    const dpr = window.devicePixelRatio || 1;
 
-    ctx.clearRect(0, 0, width, height);
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.scale(dpr, dpr);
 
     const startTime = viewCenter - viewDuration / 2;
     const endTime = viewCenter + viewDuration / 2;
@@ -103,7 +108,7 @@ function useDrawTimeline(
     ctx.fillStyle = "#4b5563";
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
-    ctx.font = "10px sans-serif";
+    ctx.font = "10px 'Noto Sans JP', sans-serif";
 
     const tickInterval = getTickInterval(viewDuration);
 
@@ -259,19 +264,35 @@ export default function TimeBar() {
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowLeft") {
+      e.preventDefault();
       setCurrentTime((prev) => Math.max(minTime, prev - 60));
     } else if (e.key === "ArrowRight") {
+      e.preventDefault();
       setCurrentTime((prev) => Math.min(maxTime, prev + 60));
     }
   };
+
+  const formattedValueText = new Date(currentTime * 1000).toLocaleString(
+    "ja-JP",
+    {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    },
+  );
 
   return (
     <div
       ref={containerRef}
       role="slider"
+      aria-label="タイムライン再生位置"
       aria-valuenow={currentTime}
       aria-valuemin={minTime}
       aria-valuemax={maxTime}
+      aria-valuetext={formattedValueText}
       tabIndex={0}
       style={{
         width: "100%",
