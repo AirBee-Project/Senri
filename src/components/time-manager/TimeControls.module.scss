@@ -2,7 +2,7 @@
 .controlsContainer {
   display: flex;
   align-items: center;
-  gap: 0;
+  gap: 0.5rem;
 }
 
 .playButton {
@@ -19,7 +19,6 @@
   border: none;
   cursor: pointer;
   color: white;
-  transform: translateX(-50%);
   transition:
     background-color 0.15s,
     transform 0.15s,
@@ -27,14 +26,13 @@
 
   &:hover {
     background: #0d5e58;
-    transform: translateX(-50%);
     box-shadow:
       0 6px 8px -1px rgba(15, 118, 110, 0.3),
       0 3px 6px -1px rgba(15, 118, 110, 0.2);
   }
 
   &:active {
-    transform: translateX(-50%) scale(0.95);
+    transform: scale(0.95);
   }
 }
 
