@@ -3,6 +3,7 @@ import { Map as MapGL } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { DrawModeToolbar } from "./components/draw-mode-manager";
 import { FeatureManager } from "./components/feature-manager";
+import { TimePanel } from "./components/time-manager";
 import { useLineStore } from "./stores/lineStores";
 import { usePointStore } from "./stores/pointStores";
 import { generateMapLayers } from "./utils/layerGenerator";
@@ -22,6 +23,9 @@ export default function App() {
       <div style={{ position: "absolute", zIndex: 50 }}>
         <FeatureManager />
       </div>
+
+      {/* timebar */}
+      <TimePanel />
 
       {/* drawmodemanager */}
       <div

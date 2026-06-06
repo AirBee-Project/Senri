@@ -136,9 +136,9 @@ function useDrawTimeline(
 }
 
 /**
- * Canvasベースの時間軸表示・操作盤コンポーネント
+ * Canvasベースの時間軸表示・操作盤コンポーネント（タイムバー）
  */
-export default function TimeAxis() {
+export default function TimeBar() {
   const currentTime = useTimeStore((state) => state.currentTime);
   const minTime = useTimeStore((state) => state.minTime);
   const maxTime = useTimeStore((state) => state.maxTime);
