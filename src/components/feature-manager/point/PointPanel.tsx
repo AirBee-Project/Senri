@@ -1,7 +1,7 @@
 import { usePointStore } from "../../../stores/pointStores";
 import type { Point } from "../../../types/geometry/point";
-import CommonPanel from "../common-ui/Panel";
 import FooterAddButton from "../common-ui/FooterAddButton";
+import CommonPanel from "../common-ui/Panel";
 import PointBox from "./PointBox";
 
 /**

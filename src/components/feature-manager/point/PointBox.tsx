@@ -1,9 +1,9 @@
 import { IconTarget, IconTrash } from "@tabler/icons-react";
 import type { Point } from "../../../types/geometry/point";
-import IconButton from "../common-ui/IconButton";
 import ColorButton from "../common-ui/ColorButton";
-import PositionInput from "../common-ui/PositionInput";
 import FeatureItemBox from "../common-ui/FeatureItemBox";
+import IconButton from "../common-ui/IconButton";
+import PositionInput from "../common-ui/PositionInput";
 
 type PointBoxProps = {
   point: Point;

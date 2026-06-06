@@ -1,9 +1,9 @@
 import { IconTarget, IconTrash } from "@tabler/icons-react";
 import type { Line } from "../../../types/geometry/line";
-import IconButton from "../common-ui/IconButton";
 import ColorButton from "../common-ui/ColorButton";
-import PositionInput from "../common-ui/PositionInput";
 import FeatureItemBox from "../common-ui/FeatureItemBox";
+import IconButton from "../common-ui/IconButton";
+import PositionInput from "../common-ui/PositionInput";
 import styles from "./LineBox.module.scss";
 
 type LineBoxProps = {

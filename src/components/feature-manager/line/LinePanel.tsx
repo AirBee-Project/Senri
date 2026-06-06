@@ -1,7 +1,7 @@
 import { useLineStore } from "../../../stores/lineStores";
 import type { Line } from "../../../types/geometry/line";
-import CommonPanel from "../common-ui/Panel";
 import FooterAddButton from "../common-ui/FooterAddButton";
+import CommonPanel from "../common-ui/Panel";
 import LineBox from "./LineBox";
 
 /**
