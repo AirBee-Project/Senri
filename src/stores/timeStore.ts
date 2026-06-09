@@ -33,10 +33,13 @@ export const useTimeStore = create<TimeState & TimeAction>()(
           (state) => {
             const nextTime =
               typeof time === "function" ? time(state.currentTime) : time;
-            state.currentTime = Math.max(
+            const clamped = Math.max(
               state.minTime,
               Math.min(nextTime, state.maxTime),
             );
+            if (state.currentTime !== clamped) {
+              state.currentTime = clamped;
+            }
           },
           false,
           "setCurrentTime",
