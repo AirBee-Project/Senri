@@ -2,8 +2,8 @@ import { IconCube, IconLine, IconPoint } from "@tabler/icons-react";
 import FeatureButton from "./FeatureButton";
 import toolbarStyles from "./FeatureToolbar.module.scss";
 import { useFeatureManagerStore } from "./featureManagerStore";
-import { PointPanel } from "./point";
 import { LinePanel } from "./line";
+import { PointPanel } from "./point";
 
 /**
  * 左上のツールバーと、その下で切り替わるパネルを管理する
