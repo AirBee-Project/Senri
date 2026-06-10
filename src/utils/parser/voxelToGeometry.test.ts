@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
 import type { RGBAColor } from "../../types/geometry/color";
 import type { SpatialIdGroup } from "../../types/geometry/spatioTemporalId/spatialIdGroup";
-import type { SpatialVoxel } from "./parseSpatialIdToVoxels";
+import type { SpatialVoxel } from "./spatialIdToVoxels";
 import {
   spatialIdGroupToGeometries,
-  spatialVoxelToGeometry,
+  voxelToGeometry,
   voxelToIdString,
-} from "./spatialIdToGeometry";
+} from "./voxelToGeometry";
 
-describe("spatialIdToGeometry", () => {
+describe("voxelToGeometry", () => {
   const dummyColor: RGBAColor = { r: 15, g: 118, b: 110, a: 255 };
 
   describe("voxelToIdString", () => {
@@ -57,7 +57,7 @@ describe("spatialIdToGeometry", () => {
     });
   });
 
-  describe("spatialVoxelToGeometry", () => {
+  describe("voxelToGeometry", () => {
     it("ズームレベル10の単一ボクセルの地理変換が正しいこと", () => {
       const voxel: SpatialVoxel = {
         z: 10,
@@ -74,7 +74,7 @@ describe("spatialIdToGeometry", () => {
         },
       };
 
-      const geometry = spatialVoxelToGeometry(voxel, dummyColor);
+      const geometry = voxelToGeometry(voxel, dummyColor);
 
       expect(geometry.points[1][0]).toBeCloseTo(-144.84375, 5);
       expect(geometry.points[0][0]).toBeCloseTo(-144.4921875, 5);
@@ -100,7 +100,7 @@ describe("spatialIdToGeometry", () => {
         yMax: 201,
       };
 
-      const geometry = spatialVoxelToGeometry(voxel, dummyColor);
+      const geometry = voxelToGeometry(voxel, dummyColor);
 
       expect(geometry.points[1][0]).toBeCloseTo(-144.84375, 5);
       expect(geometry.points[0][0]).toBeCloseTo(-144.140625, 5);

@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { SpatialId } from "../../types/geometry/spatioTemporalId";
-import { parseSpatialIdToVoxels } from "./parseSpatialIdToVoxels";
+import { spatialIdToVoxels } from "./spatialIdToVoxels";
 
-describe("parseSpatialIdToVoxels (rangeMode = true / 範囲結合モード)", () => {
+describe("spatialIdToVoxels (rangeMode = true / 範囲結合モード)", () => {
   it("範囲表記を含まないIDの場合、1x1x1サイズの SpatialVoxel が1つ返されること", () => {
     const input: SpatialId = {
       z: 10,
@@ -15,7 +15,7 @@ describe("parseSpatialIdToVoxels (rangeMode = true / 範囲結合モード)", ()
       },
     };
 
-    const result = parseSpatialIdToVoxels(input, true);
+    const result = spatialIdToVoxels(input, true);
     expect(result).toHaveLength(1);
     expect(result[0]).toEqual({
       z: 10,
@@ -45,7 +45,7 @@ describe("parseSpatialIdToVoxels (rangeMode = true / 範囲結合モード)", ()
       },
     };
 
-    const result = parseSpatialIdToVoxels(input, true);
+    const result = spatialIdToVoxels(input, true);
     expect(result).toHaveLength(1);
     expect(result[0]).toEqual({
       z: 10,
@@ -71,7 +71,7 @@ describe("parseSpatialIdToVoxels (rangeMode = true / 範囲結合モード)", ()
       y: 0,
     };
 
-    const result = parseSpatialIdToVoxels(input, true);
+    const result = spatialIdToVoxels(input, true);
     expect(result).toHaveLength(2);
 
     // ボクセル1: 3から末尾(3)まで
@@ -100,7 +100,7 @@ describe("parseSpatialIdToVoxels (rangeMode = true / 範囲結合モード)", ()
   });
 });
 
-describe("parseSpatialIdToVoxels (rangeMode = false / セル展開モード)", () => {
+describe("spatialIdToVoxels (rangeMode = false / セル展開モード)", () => {
   it("範囲表現を一切含まないIDの場合、1x1x1サイズの SpatialVoxel が1つだけ展開されて返されること", () => {
     const input: SpatialId = {
       z: 10,
@@ -113,7 +113,7 @@ describe("parseSpatialIdToVoxels (rangeMode = false / セル展開モード)", (
       },
     };
 
-    const result = parseSpatialIdToVoxels(input, false);
+    const result = spatialIdToVoxels(input, false);
     expect(result).toHaveLength(1);
     expect(result[0]).toEqual({
       z: 10,
@@ -139,7 +139,7 @@ describe("parseSpatialIdToVoxels (rangeMode = false / セル展開モード)", (
       y: [20, 22], // 20, 21, 22
     };
 
-    const result = parseSpatialIdToVoxels(input, false);
+    const result = spatialIdToVoxels(input, false);
     expect(result).toHaveLength(3);
 
     expect(result[0]).toEqual({
@@ -188,7 +188,7 @@ describe("parseSpatialIdToVoxels (rangeMode = false / セル展開モード)", (
     // 2. f=1, x=11, y=3
     // 3. f=2, x=10, y=3
     // 4. f=2, x=11, y=3
-    const result = parseSpatialIdToVoxels(input, false);
+    const result = spatialIdToVoxels(input, false);
     expect(result).toHaveLength(4);
 
     expect(result[0].fMin).toBe(1);
@@ -213,7 +213,7 @@ describe("parseSpatialIdToVoxels (rangeMode = false / セル展開モード)", (
       },
     };
 
-    const result = parseSpatialIdToVoxels(input, false);
+    const result = spatialIdToVoxels(input, false);
     // f(2通り) * y(2通り) * t(2通り) = 8個のボクセル
     expect(result).toHaveLength(8);
 
@@ -266,7 +266,7 @@ describe("parseSpatialIdToVoxels (rangeMode = false / セル展開モード)", (
       y: 0,
     };
 
-    const result = parseSpatialIdToVoxels(input, false);
+    const result = spatialIdToVoxels(input, false);
     expect(result).toHaveLength(3);
     expect(result.map((r) => r.xMin)).toEqual([3, 0, 1]);
     expect(result.every((r) => r.xMin === r.xMax)).toBe(true);

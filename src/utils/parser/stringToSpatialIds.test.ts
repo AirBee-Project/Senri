@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { parseStringSpatialId } from "./parseStringSpatialId";
+import { stringToSpatialIds } from "./stringToSpatialIds";
 
-describe("parseStringSpatialId", () => {
+describe("stringToSpatialIds", () => {
   it("有効な空間IDのみをパースできること", () => {
-    const result = parseStringSpatialId("20/22/33/44");
+    const result = stringToSpatialIds("20/22/33/44");
     expect(result.errors).toHaveLength(0);
     expect(result.success).toHaveLength(1);
     expect(result.success[0]).toEqual({
@@ -15,7 +15,7 @@ describe("parseStringSpatialId", () => {
   });
 
   it("有効な空間IDと時間IDを持つ文字列をパースできること", () => {
-    const result = parseStringSpatialId("20/22/33/44_1/1000");
+    const result = stringToSpatialIds("20/22/33/44_1/1000");
     expect(result.errors).toHaveLength(0);
     expect(result.success).toHaveLength(1);
     expect(result.success[0]).toEqual({
@@ -28,7 +28,7 @@ describe("parseStringSpatialId", () => {
   });
 
   it("範囲記法を含む有効なIDをパースできること", () => {
-    const result = parseStringSpatialId("20/22:25/33/44:48_1/100:200");
+    const result = stringToSpatialIds("20/22:25/33/44:48_1/100:200");
     expect(result.errors).toHaveLength(0);
     expect(result.success).toHaveLength(1);
     expect(result.success[0]).toEqual({
@@ -41,7 +41,7 @@ describe("parseStringSpatialId", () => {
   });
 
   it("カンマ区切りで複数の有効なIDをパースできること", () => {
-    const result = parseStringSpatialId("20/22/33/44_1/1000 , 21/5/6/7");
+    const result = stringToSpatialIds("20/22/33/44_1/1000 , 21/5/6/7");
     expect(result.errors).toHaveLength(0);
     expect(result.success).toHaveLength(2);
     expect(result.success[0]).toEqual({
@@ -60,13 +60,13 @@ describe("parseStringSpatialId", () => {
   });
 
   it("空のトークンを無視すること", () => {
-    const result = parseStringSpatialId("20/22/33/44, ,, ");
+    const result = stringToSpatialIds("20/22/33/44, ,, ");
     expect(result.errors).toHaveLength(0);
     expect(result.success).toHaveLength(1);
   });
 
   it("複数のアンダースコアが使用されている場合はエラーを返すこと", () => {
-    const result = parseStringSpatialId("20/22/33/44_1/100_2");
+    const result = stringToSpatialIds("20/22/33/44_1/100_2");
     expect(result.errors).toHaveLength(1);
     expect(result.errors[0].content).toBe("20/22/33/44_1/100_2");
     expect(result.errors[0].message).toBe(
@@ -75,7 +75,7 @@ describe("parseStringSpatialId", () => {
   });
 
   it("空間要素の数が不正な場合はエラーを返すこと", () => {
-    const result = parseStringSpatialId("20/22/33");
+    const result = stringToSpatialIds("20/22/33");
     expect(result.errors).toHaveLength(1);
     expect(result.errors[0].message).toBe(
       "空間IDの要素数が不正です。{z}/{f}/{x}/{y} の形式で指定してください。",
@@ -83,7 +83,7 @@ describe("parseStringSpatialId", () => {
   });
 
   it("時間要素の数が不正な場合はエラーを返すこと", () => {
-    const result = parseStringSpatialId("20/22/33/44_1");
+    const result = stringToSpatialIds("20/22/33/44_1");
     expect(result.errors).toHaveLength(1);
     expect(result.errors[0].message).toBe(
       "時間IDの要素数が不正です。{i}/{t} の形式で指定してください。",
@@ -91,7 +91,7 @@ describe("parseStringSpatialId", () => {
   });
 
   it("数値以外の値が使用されている場合はエラーを返すこと", () => {
-    const result = parseStringSpatialId("20/a/33/44");
+    const result = stringToSpatialIds("20/a/33/44");
     expect(result.errors).toHaveLength(1);
     expect(result.errors[0].message).toBe(
       "fは数値として正しくパースできません。",
@@ -99,15 +99,13 @@ describe("parseStringSpatialId", () => {
   });
 
   it("日本語などの全角文字が混入している場合はエラーを返すこと", () => {
-    // 空間ID部分に日本語
-    const result1 = parseStringSpatialId("20/あ/33/44");
+    const result1 = stringToSpatialIds("20/あ/33/44");
     expect(result1.errors).toHaveLength(1);
     expect(result1.errors[0].message).toBe(
       "fは数値として正しくパースできません。",
     );
 
-    // 時間ID部分に日本語
-    const result2 = parseStringSpatialId("20/22/33/44_1/あ");
+    const result2 = stringToSpatialIds("20/22/33/44_1/あ");
     expect(result2.errors).toHaveLength(1);
     expect(result2.errors[0].message).toBe(
       "tは数値として正しくパースできません。",
@@ -115,31 +113,27 @@ describe("parseStringSpatialId", () => {
   });
 
   it("空間要素の数が多すぎる・少なすぎる場合はエラーを返すこと", () => {
-    // 少なすぎる場合 (既存の確認) は要素数エラー
-    const resultFew = parseStringSpatialId("20/22/33");
+    const resultFew = stringToSpatialIds("20/22/33");
     expect(resultFew.errors).toHaveLength(1);
     expect(resultFew.errors[0].message).toContain("空間IDの要素数が不正です");
 
-    // 多すぎる場合
-    const resultMany = parseStringSpatialId("20/22/33/44/55");
+    const resultMany = stringToSpatialIds("20/22/33/44/55");
     expect(resultMany.errors).toHaveLength(1);
     expect(resultMany.errors[0].message).toContain("空間IDの要素数が不正です");
   });
 
   it("時間要素の数が多すぎる・少なすぎる場合はエラーを返すこと", () => {
-    // 少なすぎる場合 (時間要素が1つ)
-    const resultFew = parseStringSpatialId("20/22/33/44_1");
+    const resultFew = stringToSpatialIds("20/22/33/44_1");
     expect(resultFew.errors).toHaveLength(1);
     expect(resultFew.errors[0].message).toContain("時間IDの要素数が不正です");
 
-    // 多すぎる場合
-    const resultMany = parseStringSpatialId("20/22/33/44_1/100/200");
+    const resultMany = stringToSpatialIds("20/22/33/44_1/100/200");
     expect(resultMany.errors).toHaveLength(1);
     expect(resultMany.errors[0].message).toContain("時間IDの要素数が不正です");
   });
 
   it("範囲記法の指定で複数のコロンがある場合はエラーを返すこと", () => {
-    const result = parseStringSpatialId("20/22:25:28/33/44");
+    const result = stringToSpatialIds("20/22:25:28/33/44");
     expect(result.errors).toHaveLength(1);
     expect(result.errors[0].message).toBe(
       "fは範囲記法が正しくパースできません。",
@@ -147,7 +141,7 @@ describe("parseStringSpatialId", () => {
   });
 
   it("複数個の有効な入力をまとめてパースできること", () => {
-    const result = parseStringSpatialId(
+    const result = stringToSpatialIds(
       "20/22/33/44, 21/1/2/3_4/5, 22/6:7/8/9:10_11/12:13",
     );
 
@@ -176,7 +170,7 @@ describe("parseStringSpatialId", () => {
   });
 
   it("複数個の入力で成功と失敗が混在してもそれぞれ分離して扱えること", () => {
-    const result = parseStringSpatialId(
+    const result = stringToSpatialIds(
       "20/22/33/44, 20/a/33/44, 21/1/2/3_4/5, 22/6/7/8_9/x",
     );
 
@@ -206,7 +200,7 @@ describe("parseStringSpatialId", () => {
   });
 
   it("複数個の入力で空白や空要素を除外して正しく扱えること", () => {
-    const result = parseStringSpatialId(" , 20/22/33/44 , , 21/1/2/3_4/5 , ");
+    const result = stringToSpatialIds(" , 20/22/33/44 , , 21/1/2/3_4/5 , ");
 
     expect(result.errors).toHaveLength(0);
     expect(result.success).toHaveLength(2);

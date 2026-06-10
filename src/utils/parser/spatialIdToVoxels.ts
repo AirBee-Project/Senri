@@ -193,7 +193,7 @@ function parseAsSingleVoxels(spatialId: SpatialId): SpatialVoxel[] {
 /**
  * IDから個別ボクセルまたは範囲ボクセルに変換
  */
-export function parseSpatialIdToVoxels(
+export function spatialIdToVoxels(
   spatialId: SpatialId,
   rangeMode = true,
 ): SpatialVoxel[] {

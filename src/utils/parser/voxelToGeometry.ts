@@ -2,10 +2,8 @@ import type { RGBAColor } from "../../types/geometry/color";
 import type { SpatialId } from "../../types/geometry/spatioTemporalId";
 import type { SpatialIdGroup } from "../../types/geometry/spatioTemporalId/spatialIdGroup";
 import type { VoxelGeometry } from "../../types/geometry/spatioTemporalId/voxelGeometry";
-import {
-  parseSpatialIdToVoxels,
-  type SpatialVoxel,
-} from "./parseSpatialIdToVoxels";
+import { spatialIdToVoxels, type SpatialVoxel } from "./spatialIdToVoxels";
+
 /**
  * タグ用のID作成
  */
@@ -26,10 +24,11 @@ export function voxelToIdString(voxel: SpatialVoxel): string {
   const tStr = axisRangeToString(voxel.temporalId.tMin, voxel.temporalId.tMax);
   return `${spatialStr}_${voxel.temporalId.i}/${tStr}`;
 }
+
 /**
  * ボクセルから座標へ変換
  */
-export function spatialVoxelToGeometry(
+export function voxelToGeometry(
   voxel: SpatialVoxel,
   color: RGBAColor,
 ): VoxelGeometry {
@@ -82,6 +81,7 @@ export function spatialVoxelToGeometry(
 }
 
 const geometryCache = new Map<string, VoxelGeometry[]>();
+
 /**
  * キャッシュ用の文字列作成
  */
@@ -103,6 +103,7 @@ function getSpatialIdCacheKey(
   const tStr = serializeVal(spatialId.temporalId.t);
   return `${spatialStr}_${spatialId.temporalId.i}/${tStr}_${rangeMode}`;
 }
+
 /**
  *座標をリスト化
  */
@@ -121,9 +122,9 @@ export function spatialIdGroupToGeometries(
       }
       continue;
     }
-    const voxels = parseSpatialIdToVoxels(spatialId, rangeMode);
+    const voxels = spatialIdToVoxels(spatialId, rangeMode);
     const geometries = voxels.map((voxel) =>
-      spatialVoxelToGeometry(voxel, group.color),
+      voxelToGeometry(voxel, group.color),
     );
 
     geometryCache.set(key, geometries);
