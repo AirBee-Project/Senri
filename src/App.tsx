@@ -22,10 +22,12 @@ export default function App() {
   );
   const spatialIdGroupsList = Array.from(spatialIdGroupsMap.values());
 
+  const rangeMode = useSpatialIdGroupStore((state) => state.rangeMode);
+
   const baseLayers = generateMapLayers(pointsList, linesList);
 
   const voxelLayers = spatialIdGroupsList.map((group) => {
-    const geometries = spatialIdGroupToGeometries(group, true);
+    const geometries = spatialIdGroupToGeometries(group, rangeMode);
     return generateVoxelLayer(group.id, geometries, group.color);
   });
 

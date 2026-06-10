@@ -22,7 +22,7 @@ export default function SpatialIdPanel() {
 
   const handleAdd = () => {
     addSpatialIdGroup({
-      color: { r: 15, g: 118, b: 110, a: 255 },
+      color: { r: 15, g: 118, b: 110, a: 128 },
       spatialIds: [],
     });
   };

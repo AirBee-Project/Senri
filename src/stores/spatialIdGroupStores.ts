@@ -12,6 +12,7 @@ enableMapSet();
 
 interface SpatialIdGroupState {
   spatialIdGroups: Map<string, SpatialIdGroup>;
+  rangeMode: boolean;
 }
 
 interface SpatialIdGroupAction {
@@ -23,6 +24,7 @@ interface SpatialIdGroupAction {
     id: string,
     updates: Partial<SpatialIdGroup>,
   ) => ReturnType<typeof SpatialIdGroupPartialSchema.safeParse>;
+  toggleRangeMode: () => void;
 }
 
 /**
@@ -35,6 +37,7 @@ export const useSpatialIdGroupStore = create<
     immer((set) => ({
       // 初期状態
       spatialIdGroups: new Map(),
+      rangeMode: true,
 
       /**
        * 空間IDグループを追加する
@@ -94,6 +97,18 @@ export const useSpatialIdGroupStore = create<
         }
         return result;
       },
+
+      /**
+       * 範囲結合表示と個別セル展開表示をトグルする
+       */
+      toggleRangeMode: () =>
+        set(
+          (state) => {
+            state.rangeMode = !state.rangeMode;
+          },
+          false,
+          "toggleRangeMode",
+        ),
     })),
   ),
 );
