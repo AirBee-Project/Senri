@@ -1,7 +1,9 @@
-import { LineLayer, ScatterplotLayer } from "@deck.gl/layers";
+import { LineLayer, PolygonLayer, ScatterplotLayer } from "@deck.gl/layers";
 import type { LayersList } from "deck.gl";
+import type { RGBAColor } from "../types/geometry/color";
 import type { Line } from "../types/geometry/line";
 import type { Point } from "../types/geometry/point";
+import type { VoxelGeometry } from "../types/geometry/spatioTemporalId/voxelGeometry";
 
 function generatePointLayer(points: Point[]): ScatterplotLayer<Point> {
   return new ScatterplotLayer<Point>({
@@ -45,6 +47,29 @@ function generateLineLayer(lines: Line[]): LineLayer<Line> {
     },
     getWidth: (d) => d.width ?? 2,
     widthMinPixels: 1,
+  });
+}
+
+export function generateVoxelLayer(
+  id: string,
+  geometries: VoxelGeometry[],
+  color: RGBAColor,
+): PolygonLayer<VoxelGeometry> {
+  return new PolygonLayer<VoxelGeometry>({
+    id: `voxel-layer-${id}`,
+    data: geometries,
+    pickable: true,
+    extruded: true,
+    wireframe: true,
+    filled: true,
+    getPolygon: (d) => d.points,
+    getElevation: (d) => d.elevation,
+    getFillColor: [color.r, color.g, color.b, color.a],
+    getLineColor: [0, 0, 0, 255],
+    getLineWidth: 1,
+    updateTriggers: {
+      getFillColor: [color],
+    },
   });
 }
 
