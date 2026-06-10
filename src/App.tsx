@@ -6,7 +6,9 @@ import { FeatureManager } from "./components/feature-manager";
 import { TimePanel } from "./components/time-manager";
 import { useLineStore } from "./stores/lineStores";
 import { usePointStore } from "./stores/pointStores";
-import { generateMapLayers } from "./utils/layerGenerator";
+import { useSpatialIdGroupStore } from "./stores/spatialIdGroupStores";
+import { generateMapLayers, generateVoxelLayer } from "./utils/layerGenerator";
+import { spatialIdGroupToGeometries } from "./utils/parser/voxelToGeometry";
 
 export default function App() {
   const pointsMap = usePointStore((state) => state.points);
@@ -15,7 +17,19 @@ export default function App() {
   const linesMap = useLineStore((state) => state.lines);
   const linesList = Array.from(linesMap.values());
 
-  const layers = generateMapLayers(pointsList, linesList);
+  const spatialIdGroupsMap = useSpatialIdGroupStore(
+    (state) => state.spatialIdGroups,
+  );
+  const spatialIdGroupsList = Array.from(spatialIdGroupsMap.values());
+
+  const baseLayers = generateMapLayers(pointsList, linesList);
+
+  const voxelLayers = spatialIdGroupsList.map((group) => {
+    const geometries = spatialIdGroupToGeometries(group, true);
+    return generateVoxelLayer(group.id, geometries, group.color);
+  });
+
+  const layers = [...baseLayers, ...voxelLayers];
 
   return (
     <div>
