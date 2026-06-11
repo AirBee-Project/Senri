@@ -13,24 +13,10 @@ import { useSpatialIdGroupStore } from "./stores/spatialIdGroupStores";
 import { generateMapLayers, generateVoxelLayer } from "./utils/layerGenerator";
 import { spatialIdGroupToGeometries } from "./utils/parser/voxelToGeometry";
 
-const MapContainer = ({ layers }: { layers: LayersList }) => {
+const MapContainer = () => {
   const viewState = useMapStore((state) => state.viewState);
   const setViewState = useMapStore((state) => state.setViewState);
 
-  return (
-    <DeckGL
-      viewState={viewState}
-      onViewStateChange={(e) => setViewState(e.viewState as MapViewState)}
-      controller={true}
-      style={{ width: "100vw", height: "100vh" }}
-      layers={layers}
-    >
-      <MapGL mapStyle="https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json" />
-    </DeckGL>
-  );
-};
-
-export default function App() {
   const pointsMap = usePointStore((state) => state.points);
   const linesMap = useLineStore((state) => state.lines);
   const spatialIdGroupsMap = useSpatialIdGroupStore(
@@ -52,10 +38,24 @@ export default function App() {
     });
   }, [spatialIdGroupsMap, rangeMode]);
 
-  const layers = useMemo(() => {
+  const layers: LayersList = useMemo(() => {
     return [...baseLayers, ...voxelLayers];
   }, [baseLayers, voxelLayers]);
 
+  return (
+    <DeckGL
+      viewState={viewState}
+      onViewStateChange={(e) => setViewState(e.viewState as MapViewState)}
+      controller={true}
+      style={{ width: "100vw", height: "100vh" }}
+      layers={layers}
+    >
+      <MapGL mapStyle="https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json" />
+    </DeckGL>
+  );
+};
+
+export default function App() {
   return (
     <div>
       {/* featuremanager */}
@@ -79,7 +79,7 @@ export default function App() {
       </div>
 
       {/* map */}
-      <MapContainer layers={layers} />
+      <MapContainer />
     </div>
   );
 }
