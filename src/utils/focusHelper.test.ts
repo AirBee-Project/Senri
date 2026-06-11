@@ -21,8 +21,24 @@ describe("focusHelper", () => {
 
       const target = calculatePointFocus(point);
       expect(target.longitude).toBe(139.767);
-      expect(target.latitude).toBe(35.681);
+      expect(target.latitude).toBeCloseTo(35.681 + 10 / 111320, 5);
       expect(target.zoom).toBe(15);
+      expect(target.minStartTime).toBeNull();
+    });
+
+    it("should adjust zoom for high altitude points", () => {
+      const point: Point = {
+        id: "p1_high",
+        longitude: 139.767,
+        latitude: 35.681,
+        altitude: 5000,
+        color: { r: 15, g: 118, b: 110, a: 255 },
+      };
+
+      const target = calculatePointFocus(point);
+      expect(target.longitude).toBe(139.767);
+      expect(target.latitude).toBeCloseTo(35.681 + 5000 / 111320, 5);
+      expect(target.zoom).toBeLessThan(15);
       expect(target.minStartTime).toBeNull();
     });
   });
@@ -53,8 +69,23 @@ describe("focusHelper", () => {
 
       const target = calculateLineFocus(line);
       expect(target.longitude).toBe(139.5);
-      expect(target.latitude).toBe(35.5);
+      expect(target.latitude).toBeCloseTo(35.5, 5);
       expect(target.zoom).toBe(8);
+      expect(target.minStartTime).toBeNull();
+    });
+
+    it("should adjust Y-offset and zoom for high altitude line", () => {
+      const line: Line = {
+        id: "l3",
+        start: { longitude: 139.7, latitude: 35.6, altitude: 10000 },
+        end: { longitude: 139.7001, latitude: 35.6001, altitude: 10000 },
+        width: 2,
+      };
+
+      const target = calculateLineFocus(line);
+      expect(target.longitude).toBeCloseTo(139.70005, 5);
+      expect(target.latitude).toBeCloseTo(35.60005 + 10000 / 111320, 5);
+      expect(target.zoom).toBeLessThan(15);
       expect(target.minStartTime).toBeNull();
     });
   });

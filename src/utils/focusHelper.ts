@@ -33,23 +33,35 @@ function getVoxelExtents(geometries: VoxelGeometry[]): Extents {
 
   return { minLon, maxLon, minLat, maxLat };
 }
+
 /**
  * 点自身の座標
  */
 export function calculatePointFocus(point: Point): FocusTarget {
+  const latitude = point.latitude + point.altitude / 111320;
+  let zoom = 15;
+  const minCameraHeight = point.altitude + 1500;
+  const cosLat = Math.cos((point.latitude * Math.PI) / 180);
+  const maxZoom = Math.log2((6.2e7 * cosLat) / minCameraHeight);
+  if (maxZoom < zoom) {
+    zoom = Math.max(0, Math.floor(maxZoom));
+  }
   return {
     longitude: point.longitude,
-    latitude: point.latitude,
-    zoom: 15,
+    latitude,
+    zoom,
     minStartTime: null,
   };
 }
+
 /**
  * 直線の中心座標
  */
 export function calculateLineFocus(line: Line): FocusTarget {
   const longitude = (line.start.longitude + line.end.longitude) / 2;
-  const latitude = (line.start.latitude + line.end.latitude) / 2;
+  const avgLatitude = (line.start.latitude + line.end.latitude) / 2;
+  const avgAltitude = (line.start.altitude + line.end.altitude) / 2;
+  const latitude = avgLatitude + avgAltitude / 111320;
 
   const deltaLon = Math.abs(line.start.longitude - line.end.longitude);
   const deltaLat = Math.abs(line.start.latitude - line.end.latitude);
@@ -61,6 +73,13 @@ export function calculateLineFocus(line: Line): FocusTarget {
     zoom = Math.max(0, Math.min(zoom, 18));
   }
 
+  const minCameraHeight = avgAltitude + 1500;
+  const cosLat = Math.cos((avgLatitude * Math.PI) / 180);
+  const maxZoom = Math.log2((6.2e7 * cosLat) / minCameraHeight);
+  if (maxZoom < zoom) {
+    zoom = Math.max(0, Math.floor(maxZoom));
+  }
+
   return {
     longitude,
     latitude,
@@ -68,6 +87,7 @@ export function calculateLineFocus(line: Line): FocusTarget {
     minStartTime: null,
   };
 }
+
 /**
  * ボクセル群全体の中心座標
  */
