@@ -4,7 +4,7 @@ import type { SpatialId } from "../../types/geometry/spatioTemporalId";
 /**
  * パース関数のエラー型
  */
-export type ParseStringSpatialIdError = {
+export type StringToSpatialIdsError = {
   /** エラーとなった文字列 */
   content: string;
   /** エラーメッセージ */
@@ -14,22 +14,20 @@ export type ParseStringSpatialIdError = {
 /**
  * パース関数の結果型
  */
-export type ParseStringSpatialIdResult = {
+export type StringToSpatialIdsResult = {
   /** 構造的にパースに成功した空間ID（Zod未検証） */
   success: SpatialId[];
   /** エラーの情報 */
-  errors: ParseStringSpatialIdError[];
+  errors: StringToSpatialIdsError[];
 };
 
 /**
  * 大量の空間IDの文字列表記から
  * 生のオブジェクトへのパースを行う関数
  */
-export function parseStringSpatialId(
-  target: string,
-): ParseStringSpatialIdResult {
+export function stringToSpatialIds(target: string): StringToSpatialIdsResult {
   // 結果の初期化
-  const result: ParseStringSpatialIdResult = {
+  const result: StringToSpatialIdsResult = {
     success: [],
     errors: [],
   };
