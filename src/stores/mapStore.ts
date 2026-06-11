@@ -30,7 +30,7 @@ export const useMapStore = create<MapStore>((set) => ({
         zoom,
         pitch,
         bearing: 0,
-        transitionDuration: 1000,
+        transitionDuration: 500,
         transitionInterpolator: new FlyToInterpolator(),
       },
     })),
