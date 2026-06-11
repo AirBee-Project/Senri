@@ -1,12 +1,14 @@
+import { useRef, useState } from "react";
 import { IconTarget, IconTrash } from "@tabler/icons-react";
-import { useLineStore } from "../../../stores/lineStores";
-import { useMapStore } from "../../../stores/mapStore";
 import type { Line } from "../../../types/geometry/line";
-import { calculateLineFocus } from "../../../utils/focusHelper";
 import ColorButton from "../common-ui/ColorButton";
+import ColorPanel from "../common-ui/ColorPanel";
 import FeatureItemBox from "../common-ui/FeatureItemBox";
 import IconButton from "../common-ui/IconButton";
 import PositionInput from "../common-ui/PositionInput";
+import { calculateLineFocus } from "../../../utils/focusHelper";
+import { useMapStore } from "../../../stores/mapStore";
+import { useLineStore } from "../../../stores/lineStores";
 import styles from "./LineBox.module.scss";
 
 type LineBoxProps = {
@@ -19,6 +21,10 @@ type LineBoxProps = {
  * 始点・終点の緯度・経度・高度の入力欄と、削除・フォーカス・カラーの操作ボタンを持つボックス一つのセット
  */
 export default function LineBox({ line, onUpdate, onDelete }: LineBoxProps) {
+  const [showPicker, setShowPicker] = useState(false);
+  const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
   const flyTo = useMapStore((state) => state.flyTo);
   const color = line.color ?? { r: 15, g: 118, b: 110, a: 255 };
   const dotColor = `rgba(${color.r}, ${color.g}, ${color.b}, ${color.a / 255})`;
@@ -27,6 +33,11 @@ export default function LineBox({ line, onUpdate, onDelete }: LineBoxProps) {
     const latestLine = useLineStore.getState().lines.get(line.id) ?? line;
     const target = calculateLineFocus(latestLine);
     flyTo(target.longitude, target.latitude, target.zoom);
+  };
+
+  const handleColorClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    setTriggerRect(e.currentTarget.getBoundingClientRect());
+    setShowPicker((prev) => !prev);
   };
 
   return (
@@ -45,7 +56,12 @@ export default function LineBox({ line, onUpdate, onDelete }: LineBoxProps) {
             <IconTarget />
           </IconButton>
 
-          <ColorButton color={color} ariaLabel="色を変更" onClick={() => {}} />
+          <ColorButton
+            ref={buttonRef}
+            color={color}
+            ariaLabel="色を変更"
+            onClick={handleColorClick}
+          />
         </>
       }
     >
@@ -91,6 +107,15 @@ export default function LineBox({ line, onUpdate, onDelete }: LineBoxProps) {
           />
         </div>
       </div>
+      {showPicker && triggerRect && (
+        <ColorPanel
+          color={color}
+          onChange={(newColor) => onUpdate(line.id, { color: newColor })}
+          onClose={() => setShowPicker(false)}
+          triggerRect={triggerRect}
+          ignoreRef={buttonRef}
+        />
+      )}
     </FeatureItemBox>
   );
 }
