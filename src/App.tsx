@@ -1,17 +1,22 @@
-import { useMemo } from "react";
+import type { LayersList, MapViewState } from "@deck.gl/core";
 import DeckGL from "@deck.gl/react";
+import { useMemo } from "react";
 import { Map as MapGL } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { DrawModeToolbar } from "./components/draw-mode-manager";
 import { FeatureManager } from "./components/feature-manager";
 import { TimePanel } from "./components/time-manager";
 import { useLineStore } from "./stores/lineStores";
+import { useMapStore } from "./stores/mapStore";
 import { usePointStore } from "./stores/pointStores";
 import { useSpatialIdGroupStore } from "./stores/spatialIdGroupStores";
 import { generateMapLayers, generateVoxelLayer } from "./utils/layerGenerator";
 import { spatialIdGroupToGeometries } from "./utils/parser/voxelToGeometry";
 
-export default function App() {
+const MapContainer = () => {
+  const viewState = useMapStore((state) => state.viewState);
+  const setViewState = useMapStore((state) => state.setViewState);
+
   const pointsMap = usePointStore((state) => state.points);
   const linesMap = useLineStore((state) => state.lines);
   const spatialIdGroupsMap = useSpatialIdGroupStore(
@@ -33,10 +38,24 @@ export default function App() {
     });
   }, [spatialIdGroupsMap, rangeMode]);
 
-  const layers = useMemo(() => {
+  const layers: LayersList = useMemo(() => {
     return [...baseLayers, ...voxelLayers];
   }, [baseLayers, voxelLayers]);
 
+  return (
+    <DeckGL
+      viewState={viewState}
+      onViewStateChange={(e) => setViewState(e.viewState as MapViewState)}
+      controller={true}
+      style={{ width: "100vw", height: "100vh" }}
+      layers={layers}
+    >
+      <MapGL mapStyle="https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json" />
+    </DeckGL>
+  );
+};
+
+export default function App() {
   return (
     <div>
       {/* featuremanager */}
@@ -58,19 +77,9 @@ export default function App() {
       >
         <DrawModeToolbar />
       </div>
+
       {/* map */}
-      <DeckGL
-        initialViewState={{
-          longitude: 139.767,
-          latitude: 35.681,
-          zoom: 10,
-        }}
-        controller={true}
-        style={{ width: "100vw", height: "100vh" }}
-        layers={layers}
-      >
-        <MapGL mapStyle="https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json" />
-      </DeckGL>
+      <MapContainer />
     </div>
   );
 }

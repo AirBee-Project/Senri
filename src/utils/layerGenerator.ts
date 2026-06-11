@@ -1,4 +1,8 @@
-import { LineLayer, PolygonLayer, ScatterplotLayer } from "@deck.gl/layers";
+import {
+  LineLayer,
+  ScatterplotLayer,
+  SolidPolygonLayer,
+} from "@deck.gl/layers";
 import type { LayersList } from "deck.gl";
 import type { RGBAColor } from "../types/geometry/color";
 import type { Line } from "../types/geometry/line";
@@ -54,19 +58,17 @@ export function generateVoxelLayer(
   id: string,
   geometries: VoxelGeometry[],
   color: RGBAColor,
-): PolygonLayer<VoxelGeometry> {
-  return new PolygonLayer<VoxelGeometry>({
+): SolidPolygonLayer<VoxelGeometry> {
+  return new SolidPolygonLayer<VoxelGeometry>({
     id: `voxel-layer-${id}`,
     data: geometries,
-    pickable: true,
+    pickable: false,
     extruded: true,
     wireframe: true,
-    filled: true,
     getPolygon: (d) => d.points,
     getElevation: (d) => d.elevation,
     getFillColor: [color.r, color.g, color.b, color.a],
     getLineColor: [0, 0, 0, 255],
-    getLineWidth: 1,
     updateTriggers: {
       getFillColor: [color],
     },
