@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import DeckGL from "@deck.gl/react";
 import { Map as MapGL } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -12,26 +13,29 @@ import { spatialIdGroupToGeometries } from "./utils/parser/voxelToGeometry";
 
 export default function App() {
   const pointsMap = usePointStore((state) => state.points);
-  const pointsList = Array.from(pointsMap.values());
-
   const linesMap = useLineStore((state) => state.lines);
-  const linesList = Array.from(linesMap.values());
-
   const spatialIdGroupsMap = useSpatialIdGroupStore(
     (state) => state.spatialIdGroups,
   );
-  const spatialIdGroupsList = Array.from(spatialIdGroupsMap.values());
-
   const rangeMode = useSpatialIdGroupStore((state) => state.rangeMode);
 
-  const baseLayers = generateMapLayers(pointsList, linesList);
+  const baseLayers = useMemo(() => {
+    const pointsList = Array.from(pointsMap.values());
+    const linesList = Array.from(linesMap.values());
+    return generateMapLayers(pointsList, linesList);
+  }, [pointsMap, linesMap]);
 
-  const voxelLayers = spatialIdGroupsList.map((group) => {
-    const geometries = spatialIdGroupToGeometries(group, rangeMode);
-    return generateVoxelLayer(group.id, geometries, group.color);
-  });
+  const voxelLayers = useMemo(() => {
+    const groupsList = Array.from(spatialIdGroupsMap.values());
+    return groupsList.map((group) => {
+      const geometries = spatialIdGroupToGeometries(group, rangeMode);
+      return generateVoxelLayer(group.id, geometries, group.color);
+    });
+  }, [spatialIdGroupsMap, rangeMode]);
 
-  const layers = [...baseLayers, ...voxelLayers];
+  const layers = useMemo(() => {
+    return [...baseLayers, ...voxelLayers];
+  }, [baseLayers, voxelLayers]);
 
   return (
     <div>
