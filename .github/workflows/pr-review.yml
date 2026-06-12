@@ -19,6 +19,7 @@ jobs:
       - name: コードレビューの実行
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ANTIGRAVITY_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           TERM: xterm-256color
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
