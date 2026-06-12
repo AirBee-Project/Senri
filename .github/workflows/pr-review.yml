@@ -1,0 +1,24 @@
+name: 'Antigravity PR Review'
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: リポジトリのチェックアウト
+        uses: actions/checkout@v4
+
+      - name: Antigravity CLI のインストール
+        run: curl -fsSL https://antigravity.google/cli/install.sh | bash
+
+      - name: コードレビューの実行
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ~/.local/bin/agy review --pr "${{ github.event.pull_request.number }}"
