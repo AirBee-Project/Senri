@@ -1,12 +1,13 @@
+import { IconTarget, IconTrash } from "@tabler/icons-react";
 import type React from "react";
-import { useState, useEffect } from "react";
-import { IconTrash, IconTarget } from "@tabler/icons-react";
-import type { SpatialIdGroup } from "../../../types/geometry/spatioTemporalId/spatialIdGroup";
+import { useEffect, useRef, useState } from "react";
 import type { SpatialId } from "../../../types/geometry/spatioTemporalId";
+import type { SpatialIdGroup } from "../../../types/geometry/spatioTemporalId/spatialIdGroup";
+import { stringToSpatialIds } from "../../../utils/parser/stringToSpatialIds";
+import ColorButton from "../common-ui/ColorButton";
+import ColorPanel from "../common-ui/ColorPanel";
 import FeatureItemBox from "../common-ui/FeatureItemBox";
 import IconButton from "../common-ui/IconButton";
-import ColorButton from "../common-ui/ColorButton";
-import { stringToSpatialIds } from "../../../utils/parser/stringToSpatialIds";
 import styles from "./SpatialIdBox.module.scss";
 
 type SpatialIdBoxProps = {
@@ -38,6 +39,9 @@ export default function SpatialIdBox({
 }: SpatialIdBoxProps) {
   const [text, setText] = useState("");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [showPicker, setShowPicker] = useState(false);
+  const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const joined = group.spatialIds.map(spatialIdToString).join(", ");
@@ -64,6 +68,11 @@ export default function SpatialIdBox({
     }
   };
 
+  const handleColorClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    setTriggerRect(e.currentTarget.getBoundingClientRect());
+    setShowPicker((prev) => !prev);
+  };
+
   const color = group.color ?? { r: 15, g: 118, b: 110, a: 255 };
 
   return (
@@ -82,7 +91,12 @@ export default function SpatialIdBox({
             <IconTarget />
           </IconButton>
 
-          <ColorButton color={color} ariaLabel="色を変更" onClick={() => {}} />
+          <ColorButton
+            ref={buttonRef}
+            color={color}
+            ariaLabel="色を変更"
+            onClick={handleColorClick}
+          />
         </>
       }
     >
@@ -100,6 +114,15 @@ export default function SpatialIdBox({
           </div>
         )}
       </div>
+      {showPicker && triggerRect && (
+        <ColorPanel
+          color={color}
+          onChange={(newColor) => onUpdate(group.id, { color: newColor })}
+          onClose={() => setShowPicker(false)}
+          triggerRect={triggerRect}
+          ignoreRef={buttonRef}
+        />
+      )}
     </FeatureItemBox>
   );
 }

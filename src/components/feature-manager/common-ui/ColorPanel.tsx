@@ -7,10 +7,10 @@ import {
   type RGBColor,
 } from "react-color";
 import { createPortal } from "react-dom";
-import type { RGBAColor } from "../../../types/geometry/color";
 import { useClickOutside } from "../../../hooks/useClickOutside";
-import { preset_colors } from "./colors";
+import type { RGBAColor } from "../../../types/geometry/color";
 import styles from "./ColorPanel.module.scss";
+import { preset_colors } from "./colors";
 
 export interface ColorPanelProps {
   color: RGBAColor;
