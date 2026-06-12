@@ -2,7 +2,7 @@ import type { RGBAColor } from "../../types/geometry/color";
 import type { SpatialId } from "../../types/geometry/spatioTemporalId";
 import type { SpatialIdGroup } from "../../types/geometry/spatioTemporalId/spatialIdGroup";
 import type { VoxelGeometry } from "../../types/geometry/spatioTemporalId/voxelGeometry";
-import { spatialIdToVoxels, type SpatialVoxel } from "./spatialIdToVoxels";
+import { type SpatialVoxel, spatialIdToVoxels } from "./spatialIdToVoxels";
 
 /**
  * タグ用のID作成

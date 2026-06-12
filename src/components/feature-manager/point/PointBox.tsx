@@ -1,14 +1,14 @@
-import { useRef, useState } from "react";
 import { IconTarget, IconTrash } from "@tabler/icons-react";
+import { useRef, useState } from "react";
+import { useMapStore } from "../../../stores/mapStore";
+import { usePointStore } from "../../../stores/pointStores";
 import type { Point } from "../../../types/geometry/point";
+import { calculatePointFocus } from "../../../utils/focusHelper";
 import ColorButton from "../common-ui/ColorButton";
 import ColorPanel from "../common-ui/ColorPanel";
 import FeatureItemBox from "../common-ui/FeatureItemBox";
 import IconButton from "../common-ui/IconButton";
 import PositionInput from "../common-ui/PositionInput";
-import { calculatePointFocus } from "../../../utils/focusHelper";
-import { useMapStore } from "../../../stores/mapStore";
-import { usePointStore } from "../../../stores/pointStores";
 
 type PointBoxProps = {
   point: Point;

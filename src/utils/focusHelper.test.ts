@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import type { Point } from "../types/geometry/point";
 import type { Line } from "../types/geometry/line";
+import type { Point } from "../types/geometry/point";
 import type { VoxelGeometry } from "../types/geometry/spatioTemporalId/voxelGeometry";
 import {
-  calculatePointFocus,
   calculateLineFocus,
+  calculatePointFocus,
   calculateVoxelFocus,
 } from "./focusHelper";
 
