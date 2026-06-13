@@ -1,25 +1,27 @@
-name: 'Antigravity PR Review'
+name: 'AI Code Review'
+
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
 
 jobs:
   review:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
     steps:
-      - name: リポジトリのチェックアウト
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Antigravity CLI のインストール
-        run: curl -fsSL https://antigravity.google/cli/install.sh | bash
-
-      - name: コードレビューの実行
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          TERM: xterm-256color
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          ~/.local/bin/agy review --pr "${{ github.event.pull_request.number }}"
+      - name: Multi-AI Code Quality Analyzer
+        uses: newlc/ai-code-reviewer@main
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          gemini-api-key: ${{ secrets.GEMINI_API_KEY }}
+          model: gemini-2.5-flash
+          language: ja
+          config-path: .github/ai-review-config.yml

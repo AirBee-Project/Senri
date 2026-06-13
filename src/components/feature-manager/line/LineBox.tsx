@@ -1,14 +1,14 @@
-import { useRef, useState } from "react";
 import { IconTarget, IconTrash } from "@tabler/icons-react";
+import { useRef, useState } from "react";
+import { useLineStore } from "../../../stores/lineStores";
+import { useMapStore } from "../../../stores/mapStore";
 import type { Line } from "../../../types/geometry/line";
+import { calculateLineFocus } from "../../../utils/focusHelper";
 import ColorButton from "../common-ui/ColorButton";
 import ColorPanel from "../common-ui/ColorPanel";
 import FeatureItemBox from "../common-ui/FeatureItemBox";
 import IconButton from "../common-ui/IconButton";
 import PositionInput from "../common-ui/PositionInput";
-import { calculateLineFocus } from "../../../utils/focusHelper";
-import { useMapStore } from "../../../stores/mapStore";
-import { useLineStore } from "../../../stores/lineStores";
 import styles from "./LineBox.module.scss";
 
 type LineBoxProps = {

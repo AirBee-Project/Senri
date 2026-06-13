@@ -1,12 +1,13 @@
+import { IconTarget, IconTrash } from "@tabler/icons-react";
 import type React from "react";
-import { useState, useEffect } from "react";
-import { IconTrash, IconTarget } from "@tabler/icons-react";
-import type { SpatialIdGroup } from "../../../types/geometry/spatioTemporalId/spatialIdGroup";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { SpatialId } from "../../../types/geometry/spatioTemporalId";
+import type { SpatialIdGroup } from "../../../types/geometry/spatioTemporalId/spatialIdGroup";
+import { stringToSpatialIds } from "../../../utils/parser/stringToSpatialIds";
+import ColorButton from "../common-ui/ColorButton";
+import ColorPanel from "../common-ui/ColorPanel";
 import FeatureItemBox from "../common-ui/FeatureItemBox";
 import IconButton from "../common-ui/IconButton";
-import ColorButton from "../common-ui/ColorButton";
-import { stringToSpatialIds } from "../../../utils/parser/stringToSpatialIds";
 import styles from "./SpatialIdBox.module.scss";
 
 type SpatialIdBoxProps = {
@@ -38,14 +39,22 @@ export default function SpatialIdBox({
 }: SpatialIdBoxProps) {
   const [text, setText] = useState("");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const isTypingRef = useRef(false);
 
   useEffect(() => {
+    if (isTypingRef.current) {
+      isTypingRef.current = false;
+      return;
+    }
     const joined = group.spatialIds.map(spatialIdToString).join(", ");
     setText(joined);
     setErrorMsg(null);
   }, [group.spatialIds]);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    isTypingRef.current = true;
     const val = e.target.value;
     setText(val);
 
@@ -64,7 +73,26 @@ export default function SpatialIdBox({
     }
   };
 
+  const handleColorClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (triggerRect) {
+      setTriggerRect(null);
+    } else {
+      setTriggerRect(e.currentTarget.getBoundingClientRect());
+    }
+  };
+
   const color = group.color ?? { r: 15, g: 118, b: 110, a: 255 };
+
+  const handleColorChange = useCallback(
+    (newColor: typeof color) => {
+      onUpdate(group.id, { color: newColor });
+    },
+    [onUpdate, group.id],
+  );
+
+  const handleClosePanel = useCallback(() => {
+    setTriggerRect(null);
+  }, []);
 
   return (
     <FeatureItemBox
@@ -82,7 +110,12 @@ export default function SpatialIdBox({
             <IconTarget />
           </IconButton>
 
-          <ColorButton color={color} ariaLabel="色を変更" onClick={() => {}} />
+          <ColorButton
+            ref={buttonRef}
+            color={color}
+            ariaLabel="色を変更"
+            onClick={handleColorClick}
+          />
         </>
       }
     >
@@ -100,6 +133,15 @@ export default function SpatialIdBox({
           </div>
         )}
       </div>
+      {triggerRect && (
+        <ColorPanel
+          color={color}
+          onChange={handleColorChange}
+          onClose={handleClosePanel}
+          triggerRect={triggerRect}
+          ignoreRef={buttonRef}
+        />
+      )}
     </FeatureItemBox>
   );
 }
