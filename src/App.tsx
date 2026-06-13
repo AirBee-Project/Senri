@@ -10,6 +10,7 @@ import { useLineStore } from "./stores/lineStores";
 import { useMapStore } from "./stores/mapStore";
 import { usePointStore } from "./stores/pointStores";
 import { useSpatialIdGroupStore } from "./stores/spatialIdGroupStores";
+import { useTimeStore } from "./stores/timeStore";
 import { generateMapLayers, generateVoxelLayer } from "./utils/layerGenerator";
 import { spatialIdGroupToGeometries } from "./utils/parser/voxelToGeometry";
 
@@ -23,6 +24,7 @@ const MapContainer = () => {
     (state) => state.spatialIdGroups,
   );
   const rangeMode = useSpatialIdGroupStore((state) => state.rangeMode);
+  const currentTime = useTimeStore((state) => state.currentTime);
 
   // useRefを使用して再描画を防ぐ
   const hoveredVoxelIdRef = useRef<string | null>(null);
@@ -51,13 +53,25 @@ const MapContainer = () => {
     return generateMapLayers(pointsList, linesList);
   }, [pointsMap, linesMap]);
 
-  const voxelLayers = useMemo(() => {
+  const allGeometriesMap = useMemo(() => {
     const groupsList = Array.from(spatialIdGroupsMap.values());
     return groupsList.map((group) => {
-      const geometries = spatialIdGroupToGeometries(group, rangeMode);
-      return generateVoxelLayer(group.id, geometries, group.color);
+      return {
+        group,
+        geometries: spatialIdGroupToGeometries(group, rangeMode),
+      };
     });
   }, [spatialIdGroupsMap, rangeMode]);
+
+  const voxelLayers = useMemo(() => {
+    return allGeometriesMap.map(({ group, geometries }) => {
+      const filteredGeometries = geometries.filter((geom) => {
+        if (geom.startTime === null || geom.endTime === null) return true;
+        return geom.startTime <= currentTime && currentTime <= geom.endTime;
+      });
+      return generateVoxelLayer(group.id, filteredGeometries, group.color);
+    });
+  }, [allGeometriesMap, currentTime]);
 
   const layers: LayersList = useMemo(() => {
     return [...baseLayers, ...voxelLayers];
