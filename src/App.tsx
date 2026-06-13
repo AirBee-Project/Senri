@@ -1,6 +1,6 @@
 import type { LayersList, MapViewState } from "@deck.gl/core";
 import DeckGL from "@deck.gl/react";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Map as MapGL } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { DrawModeToolbar } from "./components/draw-mode-manager";
@@ -23,6 +23,23 @@ const MapContainer = () => {
     (state) => state.spatialIdGroups,
   );
   const rangeMode = useSpatialIdGroupStore((state) => state.rangeMode);
+
+  // useRefを使用して再描画を防ぐ
+  const hoveredVoxelIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const id = hoveredVoxelIdRef.current;
+      if (e.ctrlKey && e.key === "c" && id) {
+        if (!window.getSelection()?.toString()) {
+          navigator.clipboard.writeText(id);
+          console.log("Copied to clipboard:", id);
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const baseLayers = useMemo(() => {
     const pointsList = Array.from(pointsMap.values());
@@ -49,6 +66,12 @@ const MapContainer = () => {
       controller={true}
       style={{ width: "100vw", height: "100vh" }}
       layers={layers}
+      onHover={({ object }) => {
+        hoveredVoxelIdRef.current = object?.voxelId || null;
+      }}
+      getTooltip={({ object }) =>
+        object?.voxelId ? `${object.voxelId}` : null
+      }
     >
       <MapGL mapStyle="https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json" />
     </DeckGL>
