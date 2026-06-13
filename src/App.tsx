@@ -31,16 +31,14 @@ const MapContainer = () => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const id = hoveredVoxelIdRef.current;
       if (e.ctrlKey && e.key === "c" && id) {
-        if (!window.getSelection()?.toString()) {
-          navigator.clipboard
-            .writeText(id)
-            .then(() => {
-              console.log("Copied to clipboard:", id);
-            })
-            .catch((err) => {
-              console.error("Failed to copy to clipboard:", err);
-            });
-        }
+        navigator.clipboard
+          .writeText(id)
+          .then(() => {
+            console.log("Copied to clipboard:", id);
+          })
+          .catch((err) => {
+            console.error("Failed to copy to clipboard:", err);
+          });
       }
     };
     window.addEventListener("keydown", handleKeyDown);
