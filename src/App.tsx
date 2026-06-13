@@ -1,47 +1,85 @@
+import type { LayersList, MapViewState } from "@deck.gl/core";
+import DeckGL from "@deck.gl/react";
+import { useMemo } from "react";
+import { Map as MapGL } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
-import FooterControls from "./components/footer-controls/footer-controls";
-import MapViewer from "./components/map-viewer/map-viewer";
-import UpperControls from "./components/upper-controls/upper-controls";
-import { JsonProvider } from "./context/json";
-import { MapProvider, useMap } from "./context/map";
-import { TimeProvider, useTime } from "./context/time";
-import { VoxelProvider } from "./context/voxel";
-import styles from "./styles/app.module.scss";
+import { DrawModeToolbar } from "./components/draw-mode-manager";
+import { FeatureManager } from "./components/feature-manager";
+import { TimePanel } from "./components/time-manager";
+import { useLineStore } from "./stores/lineStores";
+import { useMapStore } from "./stores/mapStore";
+import { usePointStore } from "./stores/pointStores";
+import { useSpatialIdGroupStore } from "./stores/spatialIdGroupStores";
+import { generateMapLayers, generateVoxelLayer } from "./utils/layerGenerator";
+import { spatialIdGroupToGeometries } from "./utils/parser/voxelToGeometry";
 
-function AppContent() {
-  return (
-    <JsonProvider>
-      <div className={styles.appRoot}>
-        <img
-          src={`${import.meta.env.BASE_URL}logo.png`}
-          className={styles.logo}
-          alt="AirBee Logo"
-        />
-        <MapViewer />
-        <UpperControls />
-        <FooterControls />
-      </div>
-    </JsonProvider>
+const MapContainer = () => {
+  const viewState = useMapStore((state) => state.viewState);
+  const setViewState = useMapStore((state) => state.setViewState);
+
+  const pointsMap = usePointStore((state) => state.points);
+  const linesMap = useLineStore((state) => state.lines);
+  const spatialIdGroupsMap = useSpatialIdGroupStore(
+    (state) => state.spatialIdGroups,
   );
-}
+  const rangeMode = useSpatialIdGroupStore((state) => state.rangeMode);
 
-function AppWithVoxel() {
-  const { flyTo } = useMap();
-  const { setCurrentTime } = useTime();
+  const baseLayers = useMemo(() => {
+    const pointsList = Array.from(pointsMap.values());
+    const linesList = Array.from(linesMap.values());
+    return generateMapLayers(pointsList, linesList);
+  }, [pointsMap, linesMap]);
+
+  const voxelLayers = useMemo(() => {
+    const groupsList = Array.from(spatialIdGroupsMap.values());
+    return groupsList.map((group) => {
+      const geometries = spatialIdGroupToGeometries(group, rangeMode);
+      return generateVoxelLayer(group.id, geometries, group.color);
+    });
+  }, [spatialIdGroupsMap, rangeMode]);
+
+  const layers: LayersList = useMemo(() => {
+    return [...baseLayers, ...voxelLayers];
+  }, [baseLayers, voxelLayers]);
 
   return (
-    <VoxelProvider onFlyTo={flyTo} onTimeJump={setCurrentTime}>
-      <AppContent />
-    </VoxelProvider>
+    <DeckGL
+      viewState={viewState}
+      onViewStateChange={(e) => setViewState(e.viewState as MapViewState)}
+      controller={true}
+      style={{ width: "100vw", height: "100vh" }}
+      layers={layers}
+    >
+      <MapGL mapStyle="https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json" />
+    </DeckGL>
   );
-}
+};
 
 export default function App() {
   return (
-    <MapProvider>
-      <TimeProvider>
-        <AppWithVoxel />
-      </TimeProvider>
-    </MapProvider>
+    <div>
+      {/* featuremanager */}
+      <div style={{ position: "absolute", zIndex: 50 }}>
+        <FeatureManager />
+      </div>
+
+      {/* timebar */}
+      <TimePanel />
+
+      {/* drawmodemanager */}
+      <div
+        style={{
+          position: "absolute",
+          zIndex: 50,
+          bottom: "6rem",
+          right: "1rem",
+        }}
+      >
+        <DrawModeToolbar />
+      </div>
+
+      {/* map */}
+      <MapContainer />
+    </div>
   );
 }

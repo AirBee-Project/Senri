@@ -1,18 +1,20 @@
 import { useEffect } from "react";
 
-/**
- * 指定した要素の外側をクリックしたとき用のフック
- */
 export function useClickOutside<T extends HTMLElement>(
   ref: React.RefObject<T | null>,
   handler: () => void,
+  ignoreRef?: React.RefObject<HTMLElement | null>,
 ) {
   useEffect(() => {
     const el = ref?.current;
     if (!el) return;
 
-    const listener = (event: MouseEvent | TouchEvent | PointerEvent) => {
-      if (!el.contains(event.target as Node)) {
+    const listener = (event: PointerEvent) => {
+      const target = event.target as Node;
+      if (ignoreRef?.current?.contains(target)) {
+        return;
+      }
+      if (!el.contains(target)) {
         handler();
       }
     };
@@ -21,5 +23,5 @@ export function useClickOutside<T extends HTMLElement>(
     return () => {
       document.removeEventListener("pointerdown", listener);
     };
-  }, [ref, handler]);
+  }, [ref, handler, ignoreRef]);
 }

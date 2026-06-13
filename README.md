@@ -18,3 +18,36 @@
 - 点の描画
 - 線の描画
 - 地図の切り替え
+
+### セットアップ
+```bash
+bun install
+```
+
+### 開発サーバーの起動
+```bash
+bun run dev
+```
+
+### ビルド
+```bash
+bun run build
+```
+
+### プレビュー
+```bash
+bun run preview
+```
+
+### 各種コマンド
+
+| コマンド | 内容 |
+| :--- | :--- |
+| `bun run check` | Biome によるコードチェックと自動修正 |
+| `bun run format` | コードの整形 |
+| `bun run lint` | Biome によるルール違反の確認 |
+| `bun run test` | Vitest によるテストの実行 |
+| `bun run typecheck` | TypeScript の型チェック |
+| `bun run ci` | コミット前の総合チェック |
+
+
