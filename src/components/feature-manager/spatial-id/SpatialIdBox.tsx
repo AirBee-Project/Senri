@@ -1,6 +1,6 @@
 import { IconTarget, IconTrash } from "@tabler/icons-react";
 import type React from "react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { SpatialId } from "../../../types/geometry/spatioTemporalId";
 import type { SpatialIdGroup } from "../../../types/geometry/spatioTemporalId/spatialIdGroup";
 import { stringToSpatialIds } from "../../../utils/parser/stringToSpatialIds";
@@ -83,6 +83,17 @@ export default function SpatialIdBox({
 
   const color = group.color ?? { r: 15, g: 118, b: 110, a: 255 };
 
+  const handleColorChange = useCallback(
+    (newColor: typeof color) => {
+      onUpdate(group.id, { color: newColor });
+    },
+    [onUpdate, group.id],
+  );
+
+  const handleClosePanel = useCallback(() => {
+    setTriggerRect(null);
+  }, []);
+
   return (
     <FeatureItemBox
       actions={
@@ -125,8 +136,8 @@ export default function SpatialIdBox({
       {triggerRect && (
         <ColorPanel
           color={color}
-          onChange={(newColor) => onUpdate(group.id, { color: newColor })}
-          onClose={() => setTriggerRect(null)}
+          onChange={handleColorChange}
+          onClose={handleClosePanel}
           triggerRect={triggerRect}
           ignoreRef={buttonRef}
         />
