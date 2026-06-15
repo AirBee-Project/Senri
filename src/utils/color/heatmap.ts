@@ -3,7 +3,7 @@ import type { RGBAColor } from "../../types/geometry/color";
 type ColorConverter = (value: number) => RGBAColor;
 
 /**
- * valueに色を割り当てる関数
+ * valueに色を割り当てる関数の作成用関数
  */
 export function createHeatmapColorScale(values: number[]): ColorConverter {
   // 空データの場合は青を返す
