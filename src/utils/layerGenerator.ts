@@ -58,6 +58,7 @@ export function generateVoxelLayer(
   id: string,
   geometries: VoxelGeometry[],
   color: RGBAColor,
+  showBorder = true,
 ): SolidPolygonLayer<VoxelGeometry> {
   return new SolidPolygonLayer<VoxelGeometry>({
     id: `voxel-layer-${id}`,
@@ -66,7 +67,7 @@ export function generateVoxelLayer(
     autoHighlight: true,
     highlightColor: [255, 255, 255, 150],
     extruded: true,
-    wireframe: true,
+    wireframe: showBorder,
     getPolygon: (d) => d.points,
     getElevation: (d) => d.elevation,
     getFillColor: [color.r, color.g, color.b, color.a],
@@ -81,6 +82,7 @@ export function generateJsonVoxelLayer(
   id: string,
   geometries: VoxelGeometry[],
   opacity: number,
+  showBorder = true,
 ): SolidPolygonLayer<VoxelGeometry> {
   return new SolidPolygonLayer<VoxelGeometry>({
     id: `json-voxel-layer-${id}`,
@@ -89,7 +91,7 @@ export function generateJsonVoxelLayer(
     autoHighlight: true,
     highlightColor: [255, 255, 255, 150],
     extruded: true,
-    wireframe: true,
+    wireframe: showBorder,
     getPolygon: (d) => d.points,
     getElevation: (d) => d.elevation,
     getFillColor: (d) => {

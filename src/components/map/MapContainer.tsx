@@ -27,6 +27,7 @@ export default function MapContainer() {
     (state) => state.spatialIdGroups,
   );
   const rangeMode = useSpatialIdGroupStore((state) => state.rangeMode);
+  const showBorder = useSpatialIdGroupStore((state) => state.showBorder);
   const currentTime = useTimeStore((state) => state.currentTime);
 
   const {
@@ -78,9 +79,14 @@ export default function MapContainer() {
         if (geom.startTime === null || geom.endTime === null) return true;
         return geom.startTime <= currentTime && currentTime <= geom.endTime;
       });
-      return generateVoxelLayer(group.id, filteredGeometries, group.color);
+      return generateVoxelLayer(
+        group.id,
+        filteredGeometries,
+        group.color,
+        showBorder,
+      );
     });
-  }, [allGeometriesMap, currentTime]);
+  }, [allGeometriesMap, currentTime, showBorder]);
 
   const jsonGeometries = useMemo(() => {
     if (!jsonData || !jsonVisible) return [];
@@ -97,8 +103,16 @@ export default function MapContainer() {
       "json-layer",
       filteredJsonGeometries,
       jsonOpacity,
+      showBorder,
     );
-  }, [jsonData, jsonVisible, jsonGeometries, currentTime, jsonOpacity]);
+  }, [
+    jsonData,
+    jsonVisible,
+    jsonGeometries,
+    currentTime,
+    jsonOpacity,
+    showBorder,
+  ]);
 
   const layers: LayersList = useMemo(() => {
     const list = [...baseLayers, ...voxelLayers];
