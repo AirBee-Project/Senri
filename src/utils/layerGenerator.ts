@@ -59,11 +59,12 @@ export function generateVoxelLayer(
   geometries: VoxelGeometry[],
   color: RGBAColor,
   showBorder = true,
+  pickable = true,
 ): SolidPolygonLayer<VoxelGeometry> {
   return new SolidPolygonLayer<VoxelGeometry>({
     id: `voxel-layer-${id}`,
     data: geometries,
-    pickable: true,
+    pickable,
     autoHighlight: true,
     highlightColor: [255, 255, 255, 150],
     extruded: true,
@@ -83,11 +84,12 @@ export function generateJsonVoxelLayer(
   geometries: VoxelGeometry[],
   opacity: number,
   showBorder = true,
+  pickable = true,
 ): SolidPolygonLayer<VoxelGeometry> {
   return new SolidPolygonLayer<VoxelGeometry>({
     id: `json-voxel-layer-${id}`,
     data: geometries,
-    pickable: true,
+    pickable,
     autoHighlight: true,
     highlightColor: [255, 255, 255, 150],
     extruded: true,

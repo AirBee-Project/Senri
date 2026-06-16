@@ -1,6 +1,7 @@
 import {
   IconBorderOuter,
   IconMap,
+  IconPointer,
   IconRefresh,
   IconTableMinus,
 } from "@tabler/icons-react";
@@ -17,6 +18,8 @@ export default function DrawModeToolbar() {
   );
   const showBorder = useSpatialIdGroupStore((state) => state.showBorder);
   const toggleBorder = useSpatialIdGroupStore((state) => state.toggleBorder);
+  const pickable = useSpatialIdGroupStore((state) => state.pickable);
+  const togglePicking = useSpatialIdGroupStore((state) => state.togglePicking);
 
   return (
     <div className={styles.rightControls}>
@@ -29,6 +32,11 @@ export default function DrawModeToolbar() {
         icon={IconBorderOuter}
         isActive={showBorder}
         onClick={toggleBorder}
+      />
+      <DrawModeButton
+        icon={IconPointer}
+        isActive={pickable}
+        onClick={togglePicking}
       />
       <DrawModeButton icon={IconMap} isActive={false} />
       <DrawModeButton icon={IconTableMinus} isActive={false} />
