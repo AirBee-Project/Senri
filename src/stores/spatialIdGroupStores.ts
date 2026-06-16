@@ -13,6 +13,7 @@ enableMapSet();
 interface SpatialIdGroupState {
   spatialIdGroups: Map<string, SpatialIdGroup>;
   rangeMode: boolean;
+  showBorder: boolean;
 }
 
 interface SpatialIdGroupAction {
@@ -25,6 +26,7 @@ interface SpatialIdGroupAction {
     updates: Partial<SpatialIdGroup>,
   ) => ReturnType<typeof SpatialIdGroupPartialSchema.safeParse>;
   toggleRangeMode: () => void;
+  toggleBorder: () => void;
 }
 
 /**
@@ -38,6 +40,7 @@ export const useSpatialIdGroupStore = create<
       // 初期状態
       spatialIdGroups: new Map(),
       rangeMode: true,
+      showBorder: false,
 
       /**
        * 空間IDグループを追加する
@@ -108,6 +111,18 @@ export const useSpatialIdGroupStore = create<
           },
           false,
           "toggleRangeMode",
+        ),
+
+      /**
+       * 空間IDの枠線表示をトグルする
+       */
+      toggleBorder: () =>
+        set(
+          (state) => {
+            state.showBorder = !state.showBorder;
+          },
+          false,
+          "toggleBorder",
         ),
     })),
   ),

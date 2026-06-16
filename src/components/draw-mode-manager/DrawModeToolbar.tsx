@@ -1,4 +1,9 @@
-import { IconMap, IconRefresh, IconTableMinus } from "@tabler/icons-react";
+import {
+  IconBorderOuter,
+  IconMap,
+  IconRefresh,
+  IconTableMinus,
+} from "@tabler/icons-react";
 import { useSpatialIdGroupStore } from "../../stores/spatialIdGroupStores";
 import DrawModeButton from "./DrawModeButton";
 import styles from "./DrawModeToolbar.module.scss";
@@ -10,6 +15,8 @@ export default function DrawModeToolbar() {
   const toggleRangeMode = useSpatialIdGroupStore(
     (state) => state.toggleRangeMode,
   );
+  const showBorder = useSpatialIdGroupStore((state) => state.showBorder);
+  const toggleBorder = useSpatialIdGroupStore((state) => state.toggleBorder);
 
   return (
     <div className={styles.rightControls}>
@@ -17,6 +24,11 @@ export default function DrawModeToolbar() {
         icon={IconRefresh}
         isActive={false}
         onClick={toggleRangeMode}
+      />
+      <DrawModeButton
+        icon={IconBorderOuter}
+        isActive={showBorder}
+        onClick={toggleBorder}
       />
       <DrawModeButton icon={IconMap} isActive={false} />
       <DrawModeButton icon={IconTableMinus} isActive={false} />
