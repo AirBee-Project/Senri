@@ -68,6 +68,8 @@ export function generateVoxelLayer(
     autoHighlight: true,
     highlightColor: [255, 255, 255, 150],
     extruded: true,
+    // ライティング計算を無効化して描画を軽量化
+    material: false,
     wireframe: showBorder,
     getPolygon: (d) => d.points,
     getElevation: (d) => d.elevation,
@@ -93,6 +95,8 @@ export function generateJsonVoxelLayer(
     autoHighlight: true,
     highlightColor: [255, 255, 255, 150],
     extruded: true,
+    // ライティング計算を無効化して描画を軽量化
+    material: false,
     wireframe: showBorder,
     getPolygon: (d) => d.points,
     getElevation: (d) => d.elevation,
