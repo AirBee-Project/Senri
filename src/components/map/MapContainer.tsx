@@ -28,6 +28,7 @@ export default function MapContainer() {
   );
   const rangeMode = useSpatialIdGroupStore((state) => state.rangeMode);
   const showBorder = useSpatialIdGroupStore((state) => state.showBorder);
+  const pickable = useSpatialIdGroupStore((state) => state.pickable);
   const currentTime = useTimeStore((state) => state.currentTime);
 
   const {
@@ -84,9 +85,10 @@ export default function MapContainer() {
         filteredGeometries,
         group.color,
         showBorder,
+        pickable,
       );
     });
-  }, [allGeometriesMap, currentTime, showBorder]);
+  }, [allGeometriesMap, currentTime, showBorder, pickable]);
 
   const jsonGeometries = useMemo(() => {
     if (!jsonData || !jsonVisible) return [];
@@ -104,6 +106,7 @@ export default function MapContainer() {
       filteredJsonGeometries,
       jsonOpacity,
       showBorder,
+      pickable,
     );
   }, [
     jsonData,
@@ -112,6 +115,7 @@ export default function MapContainer() {
     currentTime,
     jsonOpacity,
     showBorder,
+    pickable,
   ]);
 
   const layers: LayersList = useMemo(() => {
@@ -127,6 +131,8 @@ export default function MapContainer() {
       viewState={viewState}
       onViewStateChange={(e) => setViewState(e.viewState as MapViewState)}
       controller={true}
+      // 高DPI画面でも論理ピクセル基準で描画し、描画負荷を抑える
+      useDevicePixels={false}
       style={{ width: "100vw", height: "100vh" }}
       layers={layers}
       onHover={({ object }) => {

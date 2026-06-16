@@ -59,14 +59,19 @@ export function generateVoxelLayer(
   geometries: VoxelGeometry[],
   color: RGBAColor,
   showBorder = true,
+  pickable = true,
 ): SolidPolygonLayer<VoxelGeometry> {
   return new SolidPolygonLayer<VoxelGeometry>({
     id: `voxel-layer-${id}`,
     data: geometries,
-    pickable: true,
+    pickable,
     autoHighlight: true,
     highlightColor: [255, 255, 255, 150],
     extruded: true,
+    // ライティング計算を無効化して描画を軽量化
+    material: false,
+    // 裏面の描画を省いて軽量化（面の向きに依存）
+    parameters: { cullMode: "back" },
     wireframe: showBorder,
     getPolygon: (d) => d.points,
     getElevation: (d) => d.elevation,
@@ -83,14 +88,19 @@ export function generateJsonVoxelLayer(
   geometries: VoxelGeometry[],
   opacity: number,
   showBorder = true,
+  pickable = true,
 ): SolidPolygonLayer<VoxelGeometry> {
   return new SolidPolygonLayer<VoxelGeometry>({
     id: `json-voxel-layer-${id}`,
     data: geometries,
-    pickable: true,
+    pickable,
     autoHighlight: true,
     highlightColor: [255, 255, 255, 150],
     extruded: true,
+    // ライティング計算を無効化して描画を軽量化
+    material: false,
+    // 裏面の描画を省いて軽量化（面の向きに依存）
+    parameters: { cullMode: "back" },
     wireframe: showBorder,
     getPolygon: (d) => d.points,
     getElevation: (d) => d.elevation,
