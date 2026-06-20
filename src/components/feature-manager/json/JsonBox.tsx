@@ -1,11 +1,16 @@
-import { IconTarget, IconTrash } from "@tabler/icons-react";
+import { IconRefresh, IconTarget, IconTrash } from "@tabler/icons-react";
 import type React from "react";
 import { useCallback, useRef, useState } from "react";
-import type { JsonLayerData } from "../../../stores/jsonLayerStore";
+import {
+  getJsonFileHandle,
+  type JsonLayerData,
+  useJsonLayerStore,
+} from "../../../stores/jsonLayerStore";
 import { useMapStore } from "../../../stores/mapStore";
 import { useTimeStore } from "../../../stores/timeStore";
 import { calculateVoxelFocus } from "../../../utils/focusHelper";
 import { jsonToGeometry } from "../../../utils/parser/jsonToGeometry";
+import { jsonToSpatialIds } from "../../../utils/parser/jsonToSpatialIds";
 import ColorButton from "../common-ui/ColorButton";
 import ColorPanel from "../common-ui/ColorPanel";
 import FeatureItemBox from "../common-ui/FeatureItemBox";
@@ -27,6 +32,37 @@ export default function JsonBox({
 }: JsonBoxProps) {
   const colorButtonRef = useRef<HTMLButtonElement>(null);
   const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null);
+
+  const [fileError, setFileError] = useState<string | null>(null);
+  const setData = useJsonLayerStore((state) => state.setData);
+
+  const handleReloadClick = async () => {
+    const handle = getJsonFileHandle();
+    if (!handle) {
+      setFileError(
+        "再読み込み元のファイルが見つかりません。再度追加してください。",
+      );
+      return;
+    }
+
+    let content: string;
+    try {
+      const file = await handle.getFile();
+      content = await file.text();
+    } catch {
+      setFileError("ファイルの再読み込みに失敗しました。");
+      return;
+    }
+
+    try {
+      const parsedData = jsonToSpatialIds(content);
+      setData(parsedData);
+      setFileError(null);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setFileError(errorMessage || "JSONのパースに失敗しました。");
+    }
+  };
 
   const flyTo = useMapStore((state) => state.flyTo);
   const setCurrentTime = useTimeStore((state) => state.setCurrentTime);
@@ -67,6 +103,12 @@ export default function JsonBox({
         actions={
           <>
             <IconButton
+              onClick={handleReloadClick}
+              ariaLabel="JSONデータを再読み込み"
+            >
+              <IconRefresh />
+            </IconButton>
+            <IconButton
               onClick={onDelete}
               ariaLabel="JSONデータを削除"
               variant="danger"
@@ -86,9 +128,12 @@ export default function JsonBox({
         }
       >
         <div className={styles.dataSection}>
-          <div className={styles.metaRow}>
-            <span className={styles.metaValue}>{data.name}</span>
-          </div>
+          <span className={styles.metaValue}>{data.name}</span>
+          {fileError && (
+            <div className={styles.errorMessage} role="alert">
+              {fileError}
+            </div>
+          )}
         </div>
       </FeatureItemBox>
 

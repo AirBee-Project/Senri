@@ -72,3 +72,26 @@ export async function pickTextFile(): Promise<FileHandleLike | null> {
   });
   return handle ?? null;
 }
+
+/**
+ * .jsonファイルを選択し、ファイルハンドルを返す。
+ * File System Access API 非対応ブラウザの場合は null を返す。
+ * ユーザーがキャンセルした場合は例外（AbortError）が投げられる。
+ */
+export async function pickJsonFile(): Promise<FileHandleLike | null> {
+  const picker = (
+    window as unknown as { showOpenFilePicker?: ShowOpenFilePicker }
+  ).showOpenFilePicker;
+  if (!picker) return null;
+
+  const [handle] = await picker({
+    types: [
+      {
+        description: "JSONファイル",
+        accept: { "application/json": [".json"] },
+      },
+    ],
+    multiple: false,
+  });
+  return handle ?? null;
+}
