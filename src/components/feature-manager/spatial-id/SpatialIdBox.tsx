@@ -51,6 +51,7 @@ export default function SpatialIdBox({
 
   // .txtファイル再読み込み用
   const [fileError, setFileError] = useState<string | null>(null);
+  const [isReloading, setIsReloading] = useState(false);
 
   // 元ファイルのハンドルを持つグループは.txt由来。
   // ファイルで読み込んでいるのか、テキスト直打ちなのかのフラグ
@@ -91,7 +92,6 @@ export default function SpatialIdBox({
     }
   };
 
-  // 保持しているファイルハンドルから同じファイルを再読み込みし、パース結果でグループの空間IDを全置換（全削除＋全挿入）する
   const handleReloadClick = async () => {
     const handle = getGroupFile(group.id);
     if (!handle) {
@@ -101,28 +101,27 @@ export default function SpatialIdBox({
       return;
     }
 
-    let content: string;
+    setIsReloading(true);
+    setFileError(null);
+
     try {
       const file = await handle.getFile();
-      content = await file.text();
-    } catch {
-      setFileError("ファイルの再読み込みに失敗しました。");
-      return;
-    }
+      const content = await file.text();
 
-    if (content.trim() === "") {
-      onUpdate(group.id, { spatialIds: [] });
-      setFileError(null);
-      return;
+      const parsed = stringToSpatialIds(content);
+      if (parsed.errors.length > 0) {
+        setFileError(
+          `${parsed.errors[0].content}: ${parsed.errors[0].message}`,
+        );
+      } else {
+        onUpdate(group.id, { spatialIds: parsed.success });
+      }
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setFileError(errorMessage || "ファイルの再読み込みに失敗しました。");
+    } finally {
+      setIsReloading(false);
     }
-
-    const parsed = stringToSpatialIds(content);
-    if (parsed.errors.length > 0) {
-      setFileError(`${parsed.errors[0].content}: ${parsed.errors[0].message}`);
-      return;
-    }
-    setFileError(null);
-    onUpdate(group.id, { spatialIds: parsed.success });
   };
 
   const handleColorClick = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -160,8 +159,23 @@ export default function SpatialIdBox({
 
   return (
     <FeatureItemBox
+      horizontal={isFileGroup}
       actions={
         <>
+          {isFileGroup && (
+            <IconButton
+              onClick={handleReloadClick}
+              ariaLabel="txtファイルを再読み込み"
+              disabled={isReloading}
+            >
+              <span
+                className={`${styles.iconWrapper} ${isReloading ? styles.spin : ""}`}
+              >
+                <IconRefresh size={20} />
+              </span>
+            </IconButton>
+          )}
+
           <IconButton
             onClick={() => onDelete(group.id)}
             ariaLabel="空間IDグループを削除"
@@ -184,18 +198,8 @@ export default function SpatialIdBox({
       }
     >
       {isFileGroup ? (
-        <div className={styles.textareaWrapper}>
-          <div className={styles.fileRow}>
-            <span className={styles.fileName}>{fileHandle?.name}</span>
-            <button
-              type="button"
-              className={styles.reloadButton}
-              onClick={handleReloadClick}
-              aria-label="txtファイルを再読み込み"
-            >
-              <IconRefresh size={16} />
-            </button>
-          </div>
+        <div className={styles.fileWrapper}>
+          <span className={styles.fileName}>{fileHandle?.name}</span>
           {fileError && (
             <div className={styles.errorMessage} role="alert">
               {fileError}

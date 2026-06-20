@@ -1,42 +1,75 @@
 import type React from "react";
 import { useRef, useState } from "react";
-import { useJsonLayerStore } from "../../../stores/jsonLayerStore";
+import {
+  setJsonFileHandle,
+  useJsonLayerStore,
+} from "../../../stores/jsonLayerStore";
+import {
+  type FileHandleLike,
+  fileToHandle,
+  isFileSystemAccessSupported,
+  pickJsonFile,
+} from "../../../stores/spatialIdGroupFiles";
 import { jsonToSpatialIds } from "../../../utils/parser/jsonToSpatialIds";
+import FeatureItemBox from "../common-ui/FeatureItemBox";
 import FooterAddButton from "../common-ui/FooterAddButton";
 import CommonPanel from "../common-ui/Panel";
 import JsonBox from "./JsonBox";
+import styles from "./JsonBox.module.scss";
 
 export default function JsonPanel() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isInitialLoading, setIsInitialLoading] = useState(false);
 
   const { data, opacity, setData, setOpacity, clearData } = useJsonLayerStore();
+
+  const addJsonFromHandle = async (handle: FileHandleLike) => {
+    setIsInitialLoading(true);
+    setError(null);
+
+    try {
+      const file = await handle.getFile();
+      const content = await file.text();
+      const parsedData = jsonToSpatialIds(content);
+      setData(parsedData);
+      setJsonFileHandle(handle);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setError(errorMessage || "JSONのパースに失敗しました。");
+    } finally {
+      setIsInitialLoading(false);
+    }
+  };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const jsonString = event.target?.result as string;
-        const parsedData = jsonToSpatialIds(jsonString);
-        setData(parsedData);
-        setError(null);
-      } catch (err: unknown) {
-        const errorMessage = err instanceof Error ? err.message : String(err);
-        setError(errorMessage || "JSONのパースに失敗しました。");
-      }
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    };
-    reader.onerror = () => {
-      setError("ファイルの読み込みに失敗しました。");
-    };
-    reader.readAsText(file);
+    addJsonFromHandle(fileToHandle(file));
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const handleAddClick = () => {
-    fileInputRef.current?.click();
+  const handleAddClick = async () => {
+    if (!isFileSystemAccessSupported()) {
+      fileInputRef.current?.click();
+      return;
+    }
+
+    let handle: FileHandleLike | null;
+    try {
+      handle = await pickJsonFile();
+    } catch (err: unknown) {
+      if (err instanceof DOMException && err.name === "AbortError") {
+        return;
+      }
+      console.error("ファイル選択エラー:", err);
+      setError("ファイルの選択中にエラーが発生しました。");
+      return;
+    }
+    if (!handle) return;
+
+    await addJsonFromHandle(handle);
   };
 
   return (
@@ -65,7 +98,15 @@ export default function JsonPanel() {
         </div>
       )}
 
-      {data && (
+      {isInitialLoading && (
+        <FeatureItemBox horizontal={true} actions={null}>
+          <div className={styles.dataSection}>
+            <span className={styles.metaValue}>読み込み中...</span>
+          </div>
+        </FeatureItemBox>
+      )}
+
+      {data && !isInitialLoading && (
         <JsonBox
           data={data}
           opacity={opacity}
