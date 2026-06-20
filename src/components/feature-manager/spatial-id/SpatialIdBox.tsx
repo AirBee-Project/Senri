@@ -51,6 +51,7 @@ export default function SpatialIdBox({
 
   // .txtファイル再読み込み用
   const [fileError, setFileError] = useState<string | null>(null);
+  const [isReloading, setIsReloading] = useState(false);
 
   // 元ファイルのハンドルを持つグループは.txt由来。
   // ファイルで読み込んでいるのか、テキスト直打ちなのかのフラグ
@@ -92,7 +93,7 @@ export default function SpatialIdBox({
   };
 
   // 保持しているファイルハンドルから同じファイルを再読み込みし、パース結果でグループの空間IDを全置換（全削除＋全挿入）する
-  const handleReloadClick = async () => {
+  const handleReloadClick = () => {
     const handle = getGroupFile(group.id);
     if (!handle) {
       setFileError(
@@ -101,28 +102,35 @@ export default function SpatialIdBox({
       return;
     }
 
-    let content: string;
-    try {
-      const file = await handle.getFile();
-      content = await file.text();
-    } catch {
-      setFileError("ファイルの再読み込みに失敗しました。");
-      return;
-    }
+    setIsReloading(true);
 
-    if (content.trim() === "") {
-      onUpdate(group.id, { spatialIds: [] });
-      setFileError(null);
-      return;
-    }
+    // 確実にローディング状態をブラウザに描画させるため、2フレーム待機する
+    requestAnimationFrame(() => {
+      requestAnimationFrame(async () => {
+        try {
+          const file = await handle.getFile();
+          const content = await file.text();
 
-    const parsed = stringToSpatialIds(content);
-    if (parsed.errors.length > 0) {
-      setFileError(`${parsed.errors[0].content}: ${parsed.errors[0].message}`);
-      return;
-    }
-    setFileError(null);
-    onUpdate(group.id, { spatialIds: parsed.success });
+          const parsed = stringToSpatialIds(content);
+          if (parsed.errors.length > 0) {
+            setFileError(
+              `${parsed.errors[0].content}: ${parsed.errors[0].message}`,
+            );
+          } else {
+            setFileError(null);
+            onUpdate(group.id, { spatialIds: parsed.success });
+          }
+        } catch (err: unknown) {
+          const errorMessage = err instanceof Error ? err.message : String(err);
+          setFileError(errorMessage || "ファイルの再読み込みに失敗しました。");
+        } finally {
+          // 再描画が完全に完了した後の次のイベントループで非活性を解除する
+          setTimeout(() => {
+            setIsReloading(false);
+          }, 0);
+        }
+      });
+    });
   };
 
   const handleColorClick = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -167,8 +175,13 @@ export default function SpatialIdBox({
             <IconButton
               onClick={handleReloadClick}
               ariaLabel="txtファイルを再読み込み"
+              disabled={isReloading}
             >
-              <IconRefresh />
+              <span
+                className={`${styles.iconWrapper} ${isReloading ? styles.spin : ""}`}
+              >
+                <IconRefresh size={20} />
+              </span>
             </IconButton>
           )}
 

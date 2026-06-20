@@ -34,9 +34,10 @@ export default function JsonBox({
   const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null);
 
   const [fileError, setFileError] = useState<string | null>(null);
+  const [isReloading, setIsReloading] = useState(false);
   const setData = useJsonLayerStore((state) => state.setData);
 
-  const handleReloadClick = async () => {
+  const handleReloadClick = () => {
     const handle = getJsonFileHandle();
     if (!handle) {
       setFileError(
@@ -45,23 +46,30 @@ export default function JsonBox({
       return;
     }
 
-    let content: string;
-    try {
-      const file = await handle.getFile();
-      content = await file.text();
-    } catch {
-      setFileError("ファイルの再読み込みに失敗しました。");
-      return;
-    }
+    setIsReloading(true);
 
-    try {
-      const parsedData = jsonToSpatialIds(content);
-      setData(parsedData);
-      setFileError(null);
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      setFileError(errorMessage || "JSONのパースに失敗しました。");
-    }
+    requestAnimationFrame(() => {
+      requestAnimationFrame(async () => {
+        try {
+          const file = await handle.getFile();
+          const content = await file.text();
+
+          const parsedData = jsonToSpatialIds(content);
+          setData(parsedData);
+          setFileError(null);
+        } catch (err: unknown) {
+          const errorMessage = err instanceof Error ? err.message : String(err);
+          setFileError(
+            errorMessage ||
+              "JSONファイルの読み込みまたはパースに失敗しました。",
+          );
+        } finally {
+          setTimeout(() => {
+            setIsReloading(false);
+          }, 0);
+        }
+      });
+    });
   };
 
   const flyTo = useMapStore((state) => state.flyTo);
@@ -105,8 +113,13 @@ export default function JsonBox({
             <IconButton
               onClick={handleReloadClick}
               ariaLabel="JSONデータを再読み込み"
+              disabled={isReloading}
             >
-              <IconRefresh />
+              <span
+                className={`${styles.iconWrapper} ${isReloading ? styles.spin : ""}`}
+              >
+                <IconRefresh size={20} />
+              </span>
             </IconButton>
             <IconButton
               onClick={onDelete}
