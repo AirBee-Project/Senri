@@ -43,7 +43,7 @@ export const useSpatialIdGroupStore = create<
       spatialIdGroups: new Map(),
       rangeMode: true,
       showBorder: false,
-      pickable: true,
+      pickable: false,
 
       /**
        * 空間IDグループを追加する
