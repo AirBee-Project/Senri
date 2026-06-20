@@ -26,24 +26,20 @@ export default function JsonPanel() {
 
   const addJsonFromHandle = async (handle: FileHandleLike) => {
     setIsInitialLoading(true);
+    setError(null);
 
-    requestAnimationFrame(() => {
-      requestAnimationFrame(async () => {
-        try {
-          const file = await handle.getFile();
-          const content = await file.text();
-          const parsedData = jsonToSpatialIds(content);
-          setData(parsedData);
-          setJsonFileHandle(handle);
-          setError(null);
-        } catch (err: unknown) {
-          const errorMessage = err instanceof Error ? err.message : String(err);
-          setError(errorMessage || "JSONのパースに失敗しました。");
-        } finally {
-          setIsInitialLoading(false);
-        }
-      });
-    });
+    try {
+      const file = await handle.getFile();
+      const content = await file.text();
+      const parsedData = jsonToSpatialIds(content);
+      setData(parsedData);
+      setJsonFileHandle(handle);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setError(errorMessage || "JSONのパースに失敗しました。");
+    } finally {
+      setIsInitialLoading(false);
+    }
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

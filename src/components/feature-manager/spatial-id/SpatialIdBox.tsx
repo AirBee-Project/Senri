@@ -92,8 +92,7 @@ export default function SpatialIdBox({
     }
   };
 
-  // 保持しているファイルハンドルから同じファイルを再読み込みし、パース結果でグループの空間IDを全置換（全削除＋全挿入）する
-  const handleReloadClick = () => {
+  const handleReloadClick = async () => {
     const handle = getGroupFile(group.id);
     if (!handle) {
       setFileError(
@@ -103,34 +102,26 @@ export default function SpatialIdBox({
     }
 
     setIsReloading(true);
+    setFileError(null);
 
-    // 確実にローディング状態をブラウザに描画させるため、2フレーム待機する
-    requestAnimationFrame(() => {
-      requestAnimationFrame(async () => {
-        try {
-          const file = await handle.getFile();
-          const content = await file.text();
+    try {
+      const file = await handle.getFile();
+      const content = await file.text();
 
-          const parsed = stringToSpatialIds(content);
-          if (parsed.errors.length > 0) {
-            setFileError(
-              `${parsed.errors[0].content}: ${parsed.errors[0].message}`,
-            );
-          } else {
-            setFileError(null);
-            onUpdate(group.id, { spatialIds: parsed.success });
-          }
-        } catch (err: unknown) {
-          const errorMessage = err instanceof Error ? err.message : String(err);
-          setFileError(errorMessage || "ファイルの再読み込みに失敗しました。");
-        } finally {
-          // 再描画が完全に完了した後の次のイベントループで非活性を解除する
-          setTimeout(() => {
-            setIsReloading(false);
-          }, 0);
-        }
-      });
-    });
+      const parsed = stringToSpatialIds(content);
+      if (parsed.errors.length > 0) {
+        setFileError(
+          `${parsed.errors[0].content}: ${parsed.errors[0].message}`,
+        );
+      } else {
+        onUpdate(group.id, { spatialIds: parsed.success });
+      }
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setFileError(errorMessage || "ファイルの再読み込みに失敗しました。");
+    } finally {
+      setIsReloading(false);
+    }
   };
 
   const handleColorClick = (e: React.MouseEvent<HTMLButtonElement>) => {

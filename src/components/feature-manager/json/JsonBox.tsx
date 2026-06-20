@@ -37,7 +37,7 @@ export default function JsonBox({
   const [isReloading, setIsReloading] = useState(false);
   const setData = useJsonLayerStore((state) => state.setData);
 
-  const handleReloadClick = () => {
+  const handleReloadClick = async () => {
     const handle = getJsonFileHandle();
     if (!handle) {
       setFileError(
@@ -47,29 +47,22 @@ export default function JsonBox({
     }
 
     setIsReloading(true);
+    setFileError(null);
 
-    requestAnimationFrame(() => {
-      requestAnimationFrame(async () => {
-        try {
-          const file = await handle.getFile();
-          const content = await file.text();
+    try {
+      const file = await handle.getFile();
+      const content = await file.text();
 
-          const parsedData = jsonToSpatialIds(content);
-          setData(parsedData);
-          setFileError(null);
-        } catch (err: unknown) {
-          const errorMessage = err instanceof Error ? err.message : String(err);
-          setFileError(
-            errorMessage ||
-              "JSONファイルの読み込みまたはパースに失敗しました。",
-          );
-        } finally {
-          setTimeout(() => {
-            setIsReloading(false);
-          }, 0);
-        }
-      });
-    });
+      const parsedData = jsonToSpatialIds(content);
+      setData(parsedData);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setFileError(
+        errorMessage || "JSONファイルの読み込みまたはパースに失敗しました。",
+      );
+    } finally {
+      setIsReloading(false);
+    }
   };
 
   const flyTo = useMapStore((state) => state.flyTo);

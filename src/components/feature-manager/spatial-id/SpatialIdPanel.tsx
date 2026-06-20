@@ -50,37 +50,31 @@ export default function SpatialIdPanel() {
     const loadingId = Math.random().toString(36).substring(7);
     setLoadingFiles((prev) => [...prev, { id: loadingId, name: handle.name }]);
 
-    requestAnimationFrame(() => {
-      requestAnimationFrame(async () => {
-        try {
-          const file = await handle.getFile();
-          const content = await file.text();
-          const parsed = stringToSpatialIds(content);
+    try {
+      const file = await handle.getFile();
+      const content = await file.text();
+      const parsed = stringToSpatialIds(content);
 
-          // 追加されたグループのIDを特定するため、追加前後のキー差分を取る
-          const before = new Set(
-            useSpatialIdGroupStore.getState().spatialIdGroups.keys(),
-          );
-          const result = addSpatialIdGroup({
-            color: { r: 15, g: 118, b: 110, a: 128 },
-            spatialIds: parsed.success,
-          });
-          if (!result.success) return;
-
-          const after = useSpatialIdGroupStore.getState().spatialIdGroups;
-          for (const key of after.keys()) {
-            if (!before.has(key)) {
-              setGroupFile(key, handle);
-              break;
-            }
-          }
-        } finally {
-          setLoadingFiles((prev) =>
-            prev.filter((item) => item.id !== loadingId),
-          );
-        }
+      // 追加されたグループのIDを特定するため、追加前後のキー差分を取る
+      const before = new Set(
+        useSpatialIdGroupStore.getState().spatialIdGroups.keys(),
+      );
+      const result = addSpatialIdGroup({
+        color: { r: 15, g: 118, b: 110, a: 128 },
+        spatialIds: parsed.success,
       });
-    });
+      if (!result.success) return;
+
+      const after = useSpatialIdGroupStore.getState().spatialIdGroups;
+      for (const key of after.keys()) {
+        if (!before.has(key)) {
+          setGroupFile(key, handle);
+          break;
+        }
+      }
+    } finally {
+      setLoadingFiles((prev) => prev.filter((item) => item.id !== loadingId));
+    }
   };
 
   const handleAddTxtClick = async () => {
