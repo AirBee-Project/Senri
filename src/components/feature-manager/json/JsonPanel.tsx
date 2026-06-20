@@ -59,7 +59,12 @@ export default function JsonPanel() {
     let handle: FileHandleLike | null;
     try {
       handle = await pickJsonFile();
-    } catch {
+    } catch (err: unknown) {
+      if (err instanceof DOMException && err.name === "AbortError") {
+        return;
+      }
+      console.error("ファイル選択エラー:", err);
+      setError("ファイルの選択中にエラーが発生しました。");
       return;
     }
     if (!handle) return;

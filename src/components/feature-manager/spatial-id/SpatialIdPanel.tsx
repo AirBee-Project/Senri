@@ -87,7 +87,11 @@ export default function SpatialIdPanel() {
     let handle: FileHandleLike | null;
     try {
       handle = await pickTextFile();
-    } catch {
+    } catch (err: unknown) {
+      if (err instanceof DOMException && err.name === "AbortError") {
+        return;
+      }
+      console.error("ファイル選択エラー:", err);
       return;
     }
     if (!handle) return;
