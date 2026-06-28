@@ -10,7 +10,7 @@ export default defineConfig(async ({ mode }) => {
 
   return {
     plugins: [react()],
-    base: "/Madori/",
+    base: "/Senri/",
 
     // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
     //
