@@ -2,6 +2,11 @@ import { TileLayer } from "@deck.gl/geo-layers";
 import { ScatterplotLayer, SolidPolygonLayer } from "@deck.gl/layers";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { searchData } from "../../api/kasane/api";
+import {
+  type CachedTilePayload,
+  getCachedTile,
+  saveTileToCache,
+} from "../../api/kasane/cache";
 import type { RangeId, SpatialData } from "../../api/kasane/types";
 import { useKasaneStore } from "../../stores/kasaneStore";
 import {
@@ -170,6 +175,139 @@ function mapCellsToWorkerInput(cells: SpatialData[], selectedDb: string) {
   });
 }
 
+/**
+ * Web Workerを利用して、重い3D座標への変換処理を別スレッドで行う。
+ * キャッシュ保存用に、計算済みのバイナリデータ（payload）も一緒に返す。
+ */
+async function processCellsWithWorker(
+  cells: SpatialData[],
+  selectedDb: string,
+  workerPool: Worker[],
+  signal?: AbortSignal,
+): Promise<{ geometries: VoxelGeometry[]; payload: CachedTilePayload }> {
+  return new Promise<{
+    geometries: VoxelGeometry[];
+    payload: CachedTilePayload;
+  }>((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(new DOMException("Aborted", "AbortError"));
+      return;
+    }
+
+    const worker = workerPool[Math.floor(Math.random() * workerPool.length)];
+    const jobId = crypto.randomUUID();
+
+    const cleanup = () => {
+      worker.removeEventListener("message", onMessage);
+      if (signal) signal.removeEventListener("abort", onAbort);
+    };
+
+    const onMessage = (e: MessageEvent<KasaneWorkerOutput>) => {
+      if (e.data.jobId !== jobId) return;
+      cleanup();
+      const payload = e.data.payload;
+      resolve({
+        geometries: unpackGeometries(
+          payload.buffer,
+          payload.voxelIds,
+          payload.count,
+        ),
+        payload,
+      });
+    };
+
+    const onAbort = () => {
+      cleanup();
+      reject(new DOMException("Aborted", "AbortError"));
+    };
+
+    worker.addEventListener("message", onMessage);
+    if (signal) {
+      signal.addEventListener("abort", onAbort);
+    }
+
+    const msg: KasaneWorkerInput = {
+      type: "PARSE_VOXELS",
+      jobId,
+      payload: {
+        cells: mapCellsToWorkerInput(cells, selectedDb),
+        color: KASANE_COLOR,
+      },
+    };
+    worker.postMessage(msg);
+  });
+}
+
+function calculateRangeId(x: number, y: number, z: number): RangeId | null {
+  const maxIdx = fxy_max[z];
+  if (x < 0 || x > maxIdx || y < 0 || y > maxIdx) {
+    return null;
+  }
+
+  const resolution = 33554432 / 2 ** z;
+  const fMinPractical = Math.max(f_min[z], Math.floor(-2000 / resolution));
+  const fMaxPractical = Math.min(fxy_max[z], Math.ceil(10000 / resolution));
+
+  return {
+    z,
+    f: [fMinPractical, fMaxPractical],
+    x: [x, x],
+    y: [y, y],
+    type: "rangeId",
+  };
+}
+
+/**
+ * タイルデータの取得から加工・キャッシュまでを一元管理する関数。
+ * IndexedDBにArrayBufferのキャッシュがあれば、API通信とWorker計算をスキップして高速化する。
+ */
+async function fetchAndProcessTileData(
+  cacheKey: string,
+  selectedDb: string,
+  selectedTable: string,
+  rangeId: RangeId,
+  workerPool: Worker[],
+  signal?: AbortSignal,
+): Promise<VoxelGeometry[]> {
+  const cachedPayload = await getCachedTile(cacheKey);
+
+  let geometries: VoxelGeometry[];
+
+  if (cachedPayload) {
+    // キャッシュヒット: API通信・Worker計算をスキップし、バイナリデータから即座に復元する
+    geometries = unpackGeometries(
+      cachedPayload.buffer,
+      cachedPayload.voxelIds,
+      cachedPayload.count,
+    );
+  } else {
+    // キャッシュミス: APIから取得し、Workerで計算したあとにArrayBufferを保存する
+    const cells = await searchData(
+      selectedDb,
+      selectedTable,
+      [rangeId],
+      "Ignore",
+      signal,
+    );
+
+    if (cells.length === 0) {
+      return [];
+    }
+
+    const result = await processCellsWithWorker(
+      cells,
+      selectedDb,
+      workerPool,
+      signal,
+    );
+    geometries = result.geometries;
+
+    await saveTileToCache(cacheKey, result.payload);
+  }
+
+  return geometries;
+}
+
 export function useKasaneTileLayer() {
   const selectedDb = useKasaneStore((s) => s.selectedDb);
   const selectedTable = useKasaneStore((s) => s.selectedTable);
@@ -208,6 +346,7 @@ export function useKasaneTileLayer() {
       minZoom: 0,
       maxZoom: selectedTable.max_zoom_level,
       tileSize: 256,
+      maxCacheSize: 10, // GPUクラッシュを防ぐため、画面外のタイルを即座に破棄
 
       refinementStrategy: "best-available",
 
@@ -216,93 +355,27 @@ export function useKasaneTileLayer() {
         const { x, y, z } = tile.index;
         const { signal } = tile;
 
-        const maxIdx = fxy_max[z];
-        if (x < 0 || x > maxIdx || y < 0 || y > maxIdx) {
+        const rangeId = calculateRangeId(x, y, z);
+        if (!rangeId) {
           return { full: [], half: [], quarter: [], eighth: [] };
         }
 
-        // F軸（高さ）の検索範囲を絞る
-        const resolution = 33554432 / 2 ** z;
-        const fMinPractical = Math.max(
-          f_min[z],
-          Math.floor(-2000 / resolution),
-        );
-        const fMaxPractical = Math.min(
-          fxy_max[z],
-          Math.ceil(10000 / resolution),
-        );
-
-        const rangeId: RangeId = {
-          z,
-          f: [fMinPractical, fMaxPractical],
-          x: [x, x],
-          y: [y, y],
-          type: "rangeId",
-        };
+        const cacheKey = `${selectedDb}-${selectedTable.name}-${z}-${x}-${y}`;
 
         incrementLoading();
         try {
-          const cells = await searchData(
+          const geometries = await fetchAndProcessTileData(
+            cacheKey,
             selectedDb,
             selectedTable.name,
-            [rangeId],
-            "Ignore",
+            rangeId,
+            workerPool.current,
             signal,
           );
 
-          if (cells.length === 0) {
+          if (geometries.length === 0) {
             return { full: [], half: [], quarter: [], eighth: [] };
           }
-
-          // 重い3D座標計算をworkersに任せ、メイン画面のフリーズを防ぐ。
-          const geometries = await new Promise<VoxelGeometry[]>(
-            (resolve, reject) => {
-              // キャンセル済みなら AbortError を投げて Deck.gl に再取得させる
-              if (signal?.aborted) {
-                reject(new DOMException("Aborted", "AbortError"));
-                return;
-              }
-
-              const worker =
-                workerPool.current[
-                  Math.floor(Math.random() * workerPool.current.length)
-                ];
-
-              const jobId = crypto.randomUUID();
-
-              const cleanup = () => {
-                worker.removeEventListener("message", onMessage);
-                if (signal) signal.removeEventListener("abort", onAbort);
-              };
-
-              const onMessage = (e: MessageEvent<KasaneWorkerOutput>) => {
-                if (e.data.jobId !== jobId) return;
-                cleanup();
-                const { buffer, voxelIds, count } = e.data.payload;
-                resolve(unpackGeometries(buffer, voxelIds, count));
-              };
-
-              const onAbort = () => {
-                cleanup();
-                reject(new DOMException("Aborted", "AbortError"));
-              };
-
-              worker.addEventListener("message", onMessage);
-              if (signal) {
-                signal.addEventListener("abort", onAbort);
-              }
-
-              const msg: KasaneWorkerInput = {
-                type: "PARSE_VOXELS",
-                jobId,
-                payload: {
-                  cells: mapCellsToWorkerInput(cells, selectedDb),
-                  color: KASANE_COLOR,
-                },
-              };
-              worker.postMessage(msg);
-            },
-          );
 
           return buildLodData(geometries);
         } catch (e) {
