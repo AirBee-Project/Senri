@@ -6,13 +6,14 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview",
+    "preview": "bun run build && wrangler dev",
     "format": "biome format --write .",
     "check": "biome check --write .",
     "lint": "biome lint .",
     "typecheck": "tsc --noEmit",
     "ci": "biome ci . && bun run typecheck && bun run test",
-    "test": "vitest run"
+    "test": "vitest run",
+    "deploy": "bun run build && wrangler deploy"
   },
   "dependencies": {
     "@deck.gl/core": "^9.1.11",
@@ -32,6 +33,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.2",
+    "@cloudflare/vite-plugin": "^1.42.3",
     "@types/geojson": "^7946.0.16",
     "@types/react": "^18.3.1",
     "@types/react-color": "^3.0.13",
@@ -41,6 +43,7 @@
     "sass": "^1.100.0",
     "typescript": "~5.6.2",
     "vite": "^6.0.3",
-    "vitest": "^4.1.5"
+    "vitest": "^4.1.5",
+    "wrangler": "^4.105.0"
   }
 }
