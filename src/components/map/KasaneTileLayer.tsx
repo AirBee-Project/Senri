@@ -340,6 +340,7 @@ export function useKasaneTileLayer() {
       maxZoom: selectedTable.max_zoom_level,
       tileSize: 256,
       maxCacheSize: 10, // GPUクラッシュを防ぐため、画面外のタイルを即座に破棄
+      maxRequests: 4, // サーバーのパンク（ERR_CONNECTION_REFUSED）を防ぐための同時リクエスト数制限
 
       refinementStrategy: "best-available",
 
