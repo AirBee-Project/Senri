@@ -1,3 +1,4 @@
+import type { SpatialId } from "../api/kasane/types";
 import type { RGBAColor } from "../types/geometry/color";
 
 /**
@@ -18,7 +19,7 @@ export type KasaneWorkerInput = {
   type: "PARSE_VOXELS";
   jobId: string;
   payload: {
-    cells: { z: number; f: number; x: number; y: number; color?: RGBAColor }[];
+    cells: { id: SpatialId; color?: RGBAColor }[];
     color: RGBAColor;
   };
 };

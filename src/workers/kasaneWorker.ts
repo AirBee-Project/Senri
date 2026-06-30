@@ -1,3 +1,5 @@
+import type { SpatialId } from "../types/geometry/spatioTemporalId";
+import { spatialIdToVoxels } from "../utils/parser/spatialIdToVoxels";
 import { voxelToGeometry } from "../utils/parser/voxelToGeometry";
 import { type KasaneWorkerInput, VOXEL_STRIDE } from "./kasaneWorkerProtocol";
 
@@ -10,25 +12,28 @@ self.onmessage = (e: MessageEvent<KasaneWorkerInput>) => {
 
   if (type === "PARSE_VOXELS") {
     const { cells, color } = payload;
-    const count = cells.length;
+
+    // 1. 各セルのIDを処理し、描画すべきボクセル（Range含む）を展開する
+    const allVoxels = [];
+    for (let i = 0; i < cells.length; i++) {
+      const c = cells[i];
+      const cellColor = c.color ?? color;
+
+      // RangeId の場合でも rangeMode=true で効率的な大きな矩形ボクセルに変換
+      const voxels = spatialIdToVoxels(c.id as unknown as SpatialId, true);
+      for (let j = 0; j < voxels.length; j++) {
+        allVoxels.push({ voxel: voxels[j], color: cellColor });
+      }
+    }
+
+    const count = allVoxels.length;
     const buffer = new Float64Array(count * VOXEL_STRIDE);
     const voxelIds: string[] = new Array(count);
 
+    // 2. 各ボクセルをジオメトリに変換し、Float64Arrayに書き込む
     for (let i = 0; i < count; i++) {
-      const c = cells[i];
-      const cellColor = c.color ?? color;
-      const geom = voxelToGeometry(
-        {
-          z: c.z,
-          fMin: c.f,
-          fMax: c.f,
-          xMin: c.x,
-          xMax: c.x,
-          yMin: c.y,
-          yMax: c.y,
-        },
-        cellColor,
-      );
+      const { voxel, color: cellColor } = allVoxels[i];
+      const geom = voxelToGeometry(voxel, cellColor);
 
       const o = i * VOXEL_STRIDE;
 

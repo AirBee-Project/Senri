@@ -50,5 +50,14 @@ export async function searchData(
       signal,
     },
   );
-  return res.ids;
+
+  const expanded: SpatialData[] = [];
+  for (const group of res.data) {
+    const dataValue = res.dictionary[group.valueRef];
+    for (const id of group.spatialIds) {
+      expanded.push({ id, data: dataValue });
+    }
+  }
+
+  return expanded;
 }

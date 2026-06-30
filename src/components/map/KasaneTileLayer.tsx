@@ -161,10 +161,7 @@ function mapCellsToWorkerInput(cells: SpatialData[], selectedDb: string) {
       }
     }
     return {
-      z: c.id.z,
-      f: c.id.f,
-      x: c.id.x,
-      y: c.id.y,
+      id: c.id,
       color: cellColor,
     };
   });
