@@ -7,7 +7,7 @@ import {
   getCachedTile,
   saveTileToCache,
 } from "../../api/kasane/cache";
-import type { RangeId, SpatialData } from "../../api/kasane/types";
+import type { RangeId } from "../../api/kasane/types";
 import { useKasaneStore } from "../../stores/kasaneStore";
 import {
   f_min,
@@ -82,7 +82,7 @@ interface KasaneTileData {
 }
 
 /**
- * データ取得直後に、1/1, 1/2, 1/4, 1/8 の解像度のデータを1回だけ作ってキャッシュ
+ * データ取得直後に、各種解像度のデータを1回だけ作ってキャッシュ
  */
 function buildLodData(geometries: VoxelGeometry[]): KasaneTileData {
   const half: VoxelGeometry[] = [];
@@ -97,20 +97,17 @@ function buildLodData(geometries: VoxelGeometry[]): KasaneTileData {
 }
 
 /**
- * キャッシュの中から、現在のカメラ距離適した解像度を選ぶ。
+ * キャッシュの中から、現在のカメラ距離に適した解像度を選ぶ。
  */
 function selectLodData(
   tileData: KasaneTileData,
   tileZ: number,
 ): { renderData: VoxelGeometry[]; isScatter: boolean } {
-  if (tileZ < 14) {
-    return {
-      renderData: tileZ < 12 ? tileData.eighth : tileData.quarter,
-      isScatter: true,
-    };
+  if (tileZ <= 13) {
+    return { renderData: tileData.eighth, isScatter: true };
   }
-  if (tileZ < 15) {
-    return { renderData: tileData.half, isScatter: false };
+  if (tileZ === 14 || tileZ === 15) {
+    return { renderData: tileData.half, isScatter: true };
   }
   return { renderData: tileData.full, isScatter: false };
 }
@@ -130,7 +127,9 @@ function createScatterLayer(id: string, data: VoxelGeometry[]) {
       d.color.b,
       d.color.a,
     ],
-    radiusMinPixels: 4,
+    radiusUnits: "pixels",
+    getRadius: 2,
+    radiusMinPixels: 1,
     radiusMaxPixels: 10,
     pickable: true,
   });
@@ -155,33 +154,24 @@ function createPolygonLayer(id: string, data: VoxelGeometry[]) {
   });
 }
 
-function mapCellsToWorkerInput(cells: SpatialData[], selectedDb: string) {
+function mapDictionaryToColors(dictionary: unknown[], selectedDb: string) {
   const isHeatmap = selectedDb === "riskmap" || selectedDb === "heatmap";
-  return cells.map((c) => {
+  return dictionary.map((val) => {
     let cellColor: { r: number; g: number; b: number; a: number } | undefined;
     if (isHeatmap) {
-      const val = typeof c.data === "number" ? c.data : Number(c.data);
-      if (!Number.isNaN(val)) {
-        cellColor = heatmapColorScale(val);
+      const numVal = typeof val === "number" ? val : Number(val);
+      if (!Number.isNaN(numVal)) {
+        cellColor = heatmapColorScale(numVal);
       }
     }
-    return {
-      z: c.id.z,
-      f: c.id.f,
-      x: c.id.x,
-      y: c.id.y,
-      color: cellColor,
-    };
+    return cellColor;
   });
 }
 
-/**
- * Web Workerを利用して、重い3D座標への変換処理を別スレッドで行う。
- * キャッシュ保存用に、計算済みのバイナリデータ（payload）も一緒に返す。
- */
 async function processCellsWithWorker(
-  cells: SpatialData[],
+  response: import("../../api/kasane/types").GetDataResponse,
   selectedDb: string,
+  maxZoom: number,
   workerPool: Worker[],
   signal?: AbortSignal,
 ): Promise<{ geometries: VoxelGeometry[]; payload: CachedTilePayload }> {
@@ -230,8 +220,10 @@ async function processCellsWithWorker(
       type: "PARSE_VOXELS",
       jobId,
       payload: {
-        cells: mapCellsToWorkerInput(cells, selectedDb),
-        color: KASANE_COLOR,
+        data: response.data,
+        colors: mapDictionaryToColors(response.dictionary, selectedDb),
+        defaultColor: KASANE_COLOR,
+        maxZoom,
       },
     };
     worker.postMessage(msg);
@@ -265,6 +257,7 @@ async function fetchAndProcessTileData(
   cacheKey: string,
   selectedDb: string,
   selectedTable: string,
+  maxZoom: number,
   rangeId: RangeId,
   workerPool: Worker[],
   signal?: AbortSignal,
@@ -293,20 +286,10 @@ async function fetchAndProcessTileData(
       return [];
     }
 
-    const cells: import("../../api/kasane/types").SpatialData[] = [];
-    for (const group of response.data) {
-      const dataValue = response.dictionary[group.valueRef];
-      for (const sid of group.spatialIds) {
-        cells.push({
-          id: sid as import("../../api/kasane/types").SingleId,
-          data: dataValue,
-        });
-      }
-    }
-
     const result = await processCellsWithWorker(
-      cells,
+      response,
       selectedDb,
+      maxZoom,
       workerPool,
       signal,
     );
@@ -378,6 +361,7 @@ export function useKasaneTileLayer() {
             cacheKey,
             selectedDb,
             selectedTable.name,
+            selectedTable.max_zoom_level,
             rangeId,
             workerPool.current,
             signal,

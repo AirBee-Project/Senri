@@ -40,7 +40,7 @@ export async function searchData(
   const res = await kasaneFetch(
     `/databases/${encodeURIComponent(dbName)}/tables/${encodeURIComponent(
       tableName,
-    )}/data/search?format=singleId`,
+    )}/data/search?format=rangeId`,
     {
       method: "POST",
       //spatial_idsは画面に含まれているタイルをIDに変換したもの

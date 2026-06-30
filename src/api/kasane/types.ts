@@ -39,7 +39,7 @@ export type SpatialData = z.infer<typeof SpatialDataSchema>;
 
 export const DataGroupSchema = z.object({
   valueRef: z.number().int(),
-  spatialIds: z.array(SingleIdSchema),
+  spatialIds: z.array(z.any()),
 });
 export type DataGroup = z.infer<typeof DataGroupSchema>;
 
