@@ -130,8 +130,8 @@ function createScatterLayer(id: string, data: VoxelGeometry[]) {
       d.color.b,
       d.color.a,
     ],
-    radiusMinPixels: 2,
-    radiusMaxPixels: 8,
+    radiusMinPixels: 4,
+    radiusMaxPixels: 10,
     pickable: true,
   });
 }
@@ -281,17 +281,27 @@ async function fetchAndProcessTileData(
       cachedPayload.count,
     );
   } else {
-    // キャッシュミス: APIから取得し、Workerで計算したあとにArrayBufferを保存する
-    const cells = await searchData(
+    const response = await searchData(
       selectedDb,
       selectedTable,
       [rangeId],
-      "Ignore",
+      "Normalize",
       signal,
     );
 
-    if (cells.length === 0) {
+    if (response.data.length === 0) {
       return [];
+    }
+
+    const cells: import("../../api/kasane/types").SpatialData[] = [];
+    for (const group of response.data) {
+      const dataValue = response.dictionary[group.valueRef];
+      for (const sid of group.spatialIds) {
+        cells.push({
+          id: sid as import("../../api/kasane/types").SingleId,
+          data: dataValue,
+        });
+      }
     }
 
     const result = await processCellsWithWorker(

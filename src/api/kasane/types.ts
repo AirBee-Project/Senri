@@ -7,7 +7,7 @@ import { z } from "zod";
 export const TableDataTypeSchema = z.enum(["Text", "Int", "Float", "Boolean"]);
 export type TableDataType = z.infer<typeof TableDataTypeSchema>;
 
-export const ZoomLevelPolicySchema = z.enum(["Error", "Ignore"]);
+export const ZoomLevelPolicySchema = z.enum(["Error", "Ignore", "Normalize"]);
 export type ZoomLevelPolicy = z.infer<typeof ZoomLevelPolicySchema>;
 
 /** 単一セルの時空間ID */
@@ -37,8 +37,15 @@ export const SpatialDataSchema = z.object({
 });
 export type SpatialData = z.infer<typeof SpatialDataSchema>;
 
+export const DataGroupSchema = z.object({
+  valueRef: z.number().int(),
+  spatialIds: z.array(SingleIdSchema),
+});
+export type DataGroup = z.infer<typeof DataGroupSchema>;
+
 export const GetDataResponseSchema = z.object({
-  ids: z.array(SpatialDataSchema),
+  dictionary: z.array(z.any()).default([]),
+  data: z.array(DataGroupSchema).default([]),
 });
 export type GetDataResponse = z.infer<typeof GetDataResponseSchema>;
 

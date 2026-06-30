@@ -2,8 +2,8 @@ import { kasaneFetch } from "./client";
 import {
   type DatabaseInfo,
   DatabaseListSchema,
+  type GetDataResponse,
   GetDataResponseSchema,
-  type SpatialData,
   type SpatialIdRequest,
   type TableInfo,
   TableListSchema,
@@ -36,19 +36,18 @@ export async function searchData(
   spatialIds: SpatialIdRequest[],
   zoomLevelPolicy: ZoomLevelPolicy = "Ignore",
   signal?: AbortSignal,
-): Promise<SpatialData[]> {
+): Promise<GetDataResponse> {
   const res = await kasaneFetch(
     `/databases/${encodeURIComponent(dbName)}/tables/${encodeURIComponent(
       tableName,
-    )}/data/search`,
+    )}/data/search?format=singleId`,
     {
       method: "POST",
       //spatial_idsは画面に含まれているタイルをIDに変換したもの
-      //zoom_level_policyはignoreでz=21固定
       body: { spatial_ids: spatialIds, zoom_level_policy: zoomLevelPolicy },
       schema: GetDataResponseSchema,
       signal,
     },
   );
-  return res.ids;
+  return res;
 }
