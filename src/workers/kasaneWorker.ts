@@ -114,13 +114,11 @@ function writeFinalBuffer(
 }
 
 function processWorkerPayload(payload: KasaneWorkerInput["payload"]) {
-  const { data, colors, defaultColor, maxZoom } = payload;
+  const { data, colors, defaultColor } = payload;
   let totalCount = 0;
   for (const group of data) {
-    for (const rawSid of group.spatialIds) {
-      if ((rawSid as WorkerSpatialId).z === maxZoom) {
-        totalCount++;
-      }
+    for (const _rawSid of group.spatialIds) {
+      totalCount++;
     }
   }
 
@@ -135,19 +133,17 @@ function processWorkerPayload(payload: KasaneWorkerInput["payload"]) {
     const cellColor = colors[group.valueRef] ?? defaultColor;
 
     for (const rawSid of group.spatialIds) {
-      if ((rawSid as WorkerSpatialId).z === maxZoom) {
-        processSpatialId(
-          rawSid as WorkerSpatialId,
-          cellColor,
-          positions,
-          polygonIndices,
-          elevations,
-          colorsArray,
-          voxelIds,
-          i,
-        );
-        i++;
-      }
+      processSpatialId(
+        rawSid as WorkerSpatialId,
+        cellColor,
+        positions,
+        polygonIndices,
+        elevations,
+        colorsArray,
+        voxelIds,
+        i,
+      );
+      i++;
     }
   }
 

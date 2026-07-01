@@ -1,5 +1,5 @@
 import { TileLayer } from "@deck.gl/geo-layers";
-import { ScatterplotLayer, SolidPolygonLayer } from "@deck.gl/layers";
+import { SolidPolygonLayer } from "@deck.gl/layers";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { searchData } from "../../api/kasane/api";
 import {
@@ -66,73 +66,6 @@ function unpackGeometries(
     };
   }
   return result;
-}
-
-/**
- * 間引いたデータセット
- */
-interface KasaneTileData {
-  full: VoxelGeometry[];
-  /** 1/2 間引き */
-  half: VoxelGeometry[];
-  /** 1/4 間引き */
-  quarter: VoxelGeometry[];
-  /** 1/8 間引き */
-  eighth: VoxelGeometry[];
-}
-
-/**
- * データ取得直後に、各種解像度のデータを1回だけ作ってキャッシュ
- */
-function buildLodData(geometries: VoxelGeometry[]): KasaneTileData {
-  const half: VoxelGeometry[] = [];
-  const quarter: VoxelGeometry[] = [];
-  const eighth: VoxelGeometry[] = [];
-  for (let i = 0; i < geometries.length; i++) {
-    if (i % 2 === 0) half.push(geometries[i]);
-    if (i % 4 === 0) quarter.push(geometries[i]);
-    if (i % 8 === 0) eighth.push(geometries[i]);
-  }
-  return { full: geometries, half, quarter, eighth };
-}
-
-/**
- * キャッシュの中から、現在のカメラ距離に適した解像度を選ぶ。
- */
-function selectLodData(
-  tileData: KasaneTileData,
-  tileZ: number,
-): { renderData: VoxelGeometry[]; isScatter: boolean } {
-  if (tileZ <= 13) {
-    return { renderData: tileData.eighth, isScatter: true };
-  }
-  if (tileZ === 14 || tileZ === 15) {
-    return { renderData: tileData.half, isScatter: true };
-  }
-  return { renderData: tileData.full, isScatter: false };
-}
-
-function createScatterLayer(id: string, data: VoxelGeometry[]) {
-  return new ScatterplotLayer({
-    id: `${id}-scatter`,
-    data,
-    getPosition: (d: VoxelGeometry) => [
-      d.points[0][0],
-      d.points[0][1],
-      d.altitude,
-    ],
-    getFillColor: (d: VoxelGeometry) => [
-      d.color.r,
-      d.color.g,
-      d.color.b,
-      d.color.a,
-    ],
-    radiusUnits: "pixels",
-    getRadius: 2,
-    radiusMinPixels: 1,
-    radiusMaxPixels: 10,
-    pickable: true,
-  });
 }
 
 function createPolygonLayer(id: string, data: VoxelGeometry[]) {
@@ -333,7 +266,7 @@ export function useKasaneTileLayer() {
   const layer = useMemo(() => {
     if (!selectedDb || !selectedTable) return null;
 
-    return new TileLayer<KasaneTileData>({
+    return new TileLayer<VoxelGeometry[]>({
       id: `kasane-tile-layer-${selectedDb}-${selectedTable.name}`,
       data: null,
       minZoom: 0,
@@ -351,7 +284,7 @@ export function useKasaneTileLayer() {
 
         const rangeId = calculateRangeId(x, y, z);
         if (!rangeId) {
-          return { full: [], half: [], quarter: [], eighth: [] };
+          return [];
         }
 
         const cacheKey = `${selectedDb}-${selectedTable.name}-${z}-${x}-${y}`;
@@ -369,35 +302,27 @@ export function useKasaneTileLayer() {
           );
 
           if (geometries.length === 0) {
-            return { full: [], half: [], quarter: [], eighth: [] };
+            return [];
           }
 
-          return buildLodData(geometries);
+          return geometries;
         } catch (e) {
           if ((e as Error).name === "AbortError") {
             throw e;
           }
           console.error("Kasane tile load error:", e);
-          return { full: [], half: [], quarter: [], eighth: [] };
+          return [];
         } finally {
           decrementLoading();
         }
       },
 
-      // データの揃ったタイルを地図に描画する。遠い時は点(Scatter)、近い時は面(Polygon)を使い分ける。
+      // データの揃ったタイルを地図に描画する。
       renderSubLayers: (props) => {
-        const tileData = props.data as KasaneTileData | null;
-        if (!tileData) return null;
+        const tileData = props.data as VoxelGeometry[] | null;
+        if (!tileData || tileData.length === 0) return null;
 
-        const { renderData, isScatter } = selectLodData(
-          tileData,
-          props.tile.index.z,
-        );
-        if (renderData.length === 0) return null;
-
-        return isScatter
-          ? createScatterLayer(props.id, renderData)
-          : createPolygonLayer(props.id, renderData);
+        return createPolygonLayer(props.id, tileData);
       },
 
       updateTriggers: {
