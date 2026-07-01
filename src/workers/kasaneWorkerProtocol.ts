@@ -18,8 +18,10 @@ export type KasaneWorkerInput = {
   type: "PARSE_VOXELS";
   jobId: string;
   payload: {
-    cells: { z: number; f: number; x: number; y: number; color?: RGBAColor }[];
-    color: RGBAColor;
+    data: import("../api/kasane/types").DataGroup[];
+    colors: (RGBAColor | undefined)[];
+    defaultColor: RGBAColor;
+    maxZoom: number;
   };
 };
 
