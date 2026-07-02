@@ -1,5 +1,5 @@
 import { TileLayer } from "@deck.gl/geo-layers";
-import { SolidPolygonLayer } from "@deck.gl/layers";
+import { ScatterplotLayer, SolidPolygonLayer } from "@deck.gl/layers";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { searchData } from "../../api/kasane/api";
 import {
@@ -66,6 +66,27 @@ function unpackGeometries(
     };
   }
   return result;
+}
+
+function createScatterLayer(id: string, data: VoxelGeometry[]) {
+  return new ScatterplotLayer({
+    id: `${id}-scatter`,
+    data,
+    getPosition: (d: VoxelGeometry) => [
+      d.points[0][0],
+      d.points[0][1],
+      d.altitude,
+    ],
+    getFillColor: (d: VoxelGeometry) => [
+      d.color.r,
+      d.color.g,
+      d.color.b,
+      d.color.a,
+    ],
+    radiusMinPixels: 2,
+    radiusMaxPixels: 8,
+    pickable: true,
+  });
 }
 
 function createPolygonLayer(id: string, data: VoxelGeometry[]) {
@@ -322,7 +343,15 @@ export function useKasaneTileLayer() {
         const tileData = props.data as VoxelGeometry[] | null;
         if (!tileData || tileData.length === 0) return null;
 
-        return createPolygonLayer(props.id, tileData);
+        // 17以上、またはこれ以上ズームできない(maxZoom)場合は面(Polygon)
+        // 16以下の広域は点(Scatter)
+        const isScatter =
+          props.tile.index.z < 17 &&
+          props.tile.index.z < selectedTable.max_zoom_level;
+
+        return isScatter
+          ? createScatterLayer(props.id, tileData)
+          : createPolygonLayer(props.id, tileData);
       },
 
       updateTriggers: {
