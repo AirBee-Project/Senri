@@ -343,10 +343,10 @@ export function useKasaneTileLayer() {
         const tileData = props.data as VoxelGeometry[] | null;
         if (!tileData || tileData.length === 0) return null;
 
-        // 15以上、またはこれ以上ズームできない(maxZoom)場合は面(Polygon)
-        // 14以下の広域は点(Scatter)
+        // 17以上、またはこれ以上ズームできない(maxZoom)場合は面(Polygon)
+        // 16以下の広域は点(Scatter)
         const isScatter =
-          props.tile.index.z < 15 &&
+          props.tile.index.z < 17 &&
           props.tile.index.z < selectedTable.max_zoom_level;
 
         return isScatter
