@@ -255,9 +255,56 @@ async function fetchAndProcessTileData(
   return geometries;
 }
 
+async function fetchTileDataForLayer(
+  tile: any,
+  selectedDb: string,
+  tableName: string,
+  maxZoom: number,
+  workerPool: Worker[],
+  incrementLoading: () => void,
+  decrementLoading: () => void,
+): Promise<VoxelGeometry[]> {
+  const { x, y, z } = tile.index;
+  const { signal } = tile;
+
+  const rangeId = calculateRangeId(x, y, z);
+  if (!rangeId) {
+    return [];
+  }
+
+  const cacheKey = `${selectedDb}-${tableName}-${z}-${x}-${y}`;
+
+  incrementLoading();
+  try {
+    const geometries = await fetchAndProcessTileData(
+      cacheKey,
+      selectedDb,
+      tableName,
+      maxZoom,
+      rangeId,
+      workerPool,
+      signal,
+    );
+
+    if (geometries.length === 0) {
+      return [];
+    }
+
+    return geometries;
+  } catch (e) {
+    if ((e as Error).name === "AbortError") {
+      throw e;
+    }
+    console.error("Kasane tile load error:", e);
+    return [];
+  } finally {
+    decrementLoading();
+  }
+}
+
 export function useKasaneTileLayer() {
   const selectedDb = useKasaneStore((s) => s.selectedDb);
-  const selectedTable = useKasaneStore((s) => s.selectedTable);
+  const selectedTables = useKasaneStore((s) => s.selectedTables);
   const setLoading = useKasaneStore((s) => s.setLoading);
 
   // 0 ⇔ 1 の境界でのみ Zustand に通知する。
@@ -284,81 +331,56 @@ export function useKasaneTileLayer() {
     };
   }, []);
 
-  const layer = useMemo(() => {
-    if (!selectedDb || !selectedTable) return null;
+  const layers = useMemo(() => {
+    if (!selectedDb || selectedTables.length === 0) return [];
 
-    return new TileLayer<VoxelGeometry[]>({
-      id: `kasane-tile-layer-${selectedDb}-${selectedTable.name}`,
-      data: null,
-      minZoom: 0,
-      maxZoom: selectedTable.max_zoom_level,
-      tileSize: 256,
-      maxCacheSize: 10, // GPUクラッシュを防ぐため、画面外のタイルを即座に破棄
-      maxRequests: 4, // サーバーのパンク（ERR_CONNECTION_REFUSED）を防ぐための同時リクエスト数制限
+    return selectedTables.map(
+      (selectedTable) =>
+        new TileLayer<VoxelGeometry[]>({
+          id: `kasane-tile-layer-${selectedDb}-${selectedTable.name}`,
+          data: null,
+          minZoom: 0,
+          maxZoom: selectedTable.max_zoom_level,
+          tileSize: 256,
+          maxCacheSize: 10, // GPUクラッシュを防ぐため、画面外のタイルを即座に破棄
+          maxRequests: 4, // サーバーのパンク（ERR_CONNECTION_REFUSED）を防ぐための同時リクエスト数制限
 
-      refinementStrategy: "best-available",
+          refinementStrategy: "best-available",
 
-      // 新しいタイルが画面に入るたびに呼ばれ、Kasaneからデータを取得する。
-      getTileData: async (tile) => {
-        const { x, y, z } = tile.index;
-        const { signal } = tile;
+          // 新しいタイルが画面に入るたびに呼ばれ、Kasaneからデータを取得する。
+          getTileData: (tile) =>
+            fetchTileDataForLayer(
+              tile,
+              selectedDb,
+              selectedTable.name,
+              selectedTable.max_zoom_level,
+              workerPool.current,
+              incrementLoading,
+              decrementLoading,
+            ),
 
-        const rangeId = calculateRangeId(x, y, z);
-        if (!rangeId) {
-          return [];
-        }
+          // データの揃ったタイルを地図に描画する。
+          renderSubLayers: (props) => {
+            const tileData = props.data as VoxelGeometry[] | null;
+            if (!tileData || tileData.length === 0) return null;
 
-        const cacheKey = `${selectedDb}-${selectedTable.name}-${z}-${x}-${y}`;
+            // 17以上、またはこれ以上ズームできない(maxZoom)場合は面(Polygon)
+            // 16以下の広域は点(Scatter)
+            const isScatter =
+              props.tile.index.z < 17 &&
+              props.tile.index.z < selectedTable.max_zoom_level;
 
-        incrementLoading();
-        try {
-          const geometries = await fetchAndProcessTileData(
-            cacheKey,
-            selectedDb,
-            selectedTable.name,
-            selectedTable.max_zoom_level,
-            rangeId,
-            workerPool.current,
-            signal,
-          );
+            return isScatter
+              ? createScatterLayer(props.id, tileData)
+              : createPolygonLayer(props.id, tileData);
+          },
 
-          if (geometries.length === 0) {
-            return [];
-          }
+          updateTriggers: {
+            getTileData: [selectedDb, selectedTable.name],
+          },
+        }),
+    );
+  }, [selectedDb, selectedTables, incrementLoading, decrementLoading]);
 
-          return geometries;
-        } catch (e) {
-          if ((e as Error).name === "AbortError") {
-            throw e;
-          }
-          console.error("Kasane tile load error:", e);
-          return [];
-        } finally {
-          decrementLoading();
-        }
-      },
-
-      // データの揃ったタイルを地図に描画する。
-      renderSubLayers: (props) => {
-        const tileData = props.data as VoxelGeometry[] | null;
-        if (!tileData || tileData.length === 0) return null;
-
-        // 17以上、またはこれ以上ズームできない(maxZoom)場合は面(Polygon)
-        // 16以下の広域は点(Scatter)
-        const isScatter =
-          props.tile.index.z < 17 &&
-          props.tile.index.z < selectedTable.max_zoom_level;
-
-        return isScatter
-          ? createScatterLayer(props.id, tileData)
-          : createPolygonLayer(props.id, tileData);
-      },
-
-      updateTriggers: {
-        getTileData: [selectedDb, selectedTable.name],
-      },
-    });
-  }, [selectedDb, selectedTable, incrementLoading, decrementLoading]);
-
-  return layer;
+  return layers;
 }

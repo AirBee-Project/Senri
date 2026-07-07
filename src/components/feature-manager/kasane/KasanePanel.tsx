@@ -10,14 +10,14 @@ export default function KasanePanel() {
   const databases = useKasaneStore((s) => s.databases);
   const tables = useKasaneStore((s) => s.tables);
   const selectedDb = useKasaneStore((s) => s.selectedDb);
-  const selectedTable = useKasaneStore((s) => s.selectedTable);
+  const selectedTables = useKasaneStore((s) => s.selectedTables);
   const loading = useKasaneStore((s) => s.loading);
   const error = useKasaneStore((s) => s.error);
   const notice = useKasaneStore((s) => s.notice);
   const setDatabases = useKasaneStore((s) => s.setDatabases);
   const setTables = useKasaneStore((s) => s.setTables);
   const selectDb = useKasaneStore((s) => s.selectDb);
-  const selectTable = useKasaneStore((s) => s.selectTable);
+  const toggleTable = useKasaneStore((s) => s.toggleTable);
   const setError = useKasaneStore((s) => s.setError);
 
   const configured = isKasaneConfigured();
@@ -49,11 +49,6 @@ export default function KasanePanel() {
     }
   };
 
-  const handleTableChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const name = e.target.value;
-    selectTable(tables.find((t) => t.name === name) ?? null);
-  };
-
   return (
     <CommonPanel>
       {!configured ? (
@@ -78,24 +73,33 @@ export default function KasanePanel() {
             </select>
           </label>
 
-          <label className={styles.field}>
+          <div className={styles.field}>
             <span className={styles.fieldLabel}>テーブル</span>
-            <select
-              className={styles.select}
-              value={selectedTable?.name ?? ""}
-              onChange={handleTableChange}
-              disabled={!selectedDb}
-            >
-              <option value="">
-                {selectedDb ? "選択してください" : "先にDBを選択"}
-              </option>
-              {tables.map((t) => (
-                <option key={t.name} value={t.name}>
-                  {t.name}（{t.data_type}）
-                </option>
-              ))}
-            </select>
-          </label>
+            {!selectedDb ? (
+              <div className={styles.message}>先にDBを選択してください</div>
+            ) : tables.length === 0 ? (
+              <div className={styles.message}>テーブルがありません</div>
+            ) : (
+              <div className={styles.tableList}>
+                {tables.map((t) => {
+                  const isSelected = selectedTables.some(
+                    (st) => st.name === t.name,
+                  );
+                  return (
+                    <label key={t.name} className={styles.checkboxLabel}>
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={(e) => toggleTable(t, e.target.checked)}
+                      />
+                      {t.name}{" "}
+                      <span className={styles.dataType}>（{t.data_type}）</span>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
           <div className={styles.statusContainer}>
             {loading && (
