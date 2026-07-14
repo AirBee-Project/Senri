@@ -6,6 +6,9 @@ import { TimePanel } from "./components/time-manager";
 
 import { useMapStore } from "./stores/mapStore";
 
+// URLに ?debug をつけると開発者モード（従来の画面）に切り替わる
+const isDebugMode = new URLSearchParams(window.location.search).has("debug");
+
 function ZoomIndicator() {
   const zoom = useMapStore((state) => state.viewState.zoom);
   if (zoom === undefined) return null;
@@ -29,10 +32,12 @@ function ZoomIndicator() {
 export default function App() {
   return (
     <div>
-      {/* featuremanager */}
-      <div style={{ position: "absolute", zIndex: 50 }}>
-        <FeatureManager />
-      </div>
+      {/* featuremanager: 原則非表示（?debug付きの開発者モードでのみ表示） */}
+      {isDebugMode && (
+        <div style={{ position: "absolute", zIndex: 50 }}>
+          <FeatureManager />
+        </div>
+      )}
 
       {/* logo & zoom info */}
       <div
