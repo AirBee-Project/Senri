@@ -149,18 +149,18 @@ export default function MapContainer() {
     pickable,
   ]);
 
-  const kasaneLayer = useKasaneTileLayer();
+  const kasaneLayers = useKasaneTileLayer();
 
   const layers: LayersList = useMemo(() => {
     const list = [...baseLayers, ...voxelLayers];
     if (jsonLayer) {
       list.push(jsonLayer);
     }
-    if (kasaneLayer) {
-      list.push(kasaneLayer);
+    if (kasaneLayers.length > 0) {
+      list.push(...kasaneLayers);
     }
     return list;
-  }, [baseLayers, voxelLayers, jsonLayer, kasaneLayer]);
+  }, [baseLayers, voxelLayers, jsonLayer, kasaneLayers]);
 
   return (
     <DeckGL
