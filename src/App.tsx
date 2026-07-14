@@ -66,7 +66,7 @@ export default function App() {
       {/* timebar */}
       <TimePanel />
 
-      {/* drawmodemanager */}
+      {/* drawmodemanager: ビューワーモードでは歯車に収納する */}
       <div
         style={{
           position: "absolute",
@@ -75,7 +75,7 @@ export default function App() {
           right: "1rem",
         }}
       >
-        <DrawModeToolbar />
+        <DrawModeToolbar collapsible={!isDebugMode} />
       </div>
 
       {/* map */}
