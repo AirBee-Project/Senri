@@ -20,6 +20,8 @@ export type KasaneWorkerInput = {
   payload: {
     data: import("../api/kasane/types").DataGroup[];
     colors: (RGBAColor | undefined)[];
+    /** レスポンスの値辞書。出力ペイロードへそのまま引き継がれる */
+    dictionary: unknown[];
     defaultColor: RGBAColor;
     maxZoom: number;
   };
@@ -35,5 +37,9 @@ export type KasaneWorkerOutput = {
     voxelIds: string[];
     /** ボクセル数 */
     count: number;
+    /** Transferable: 各ボクセルが参照する dictionary のインデックス */
+    valueRefs: Uint32Array;
+    /** レスポンスの値辞書。valueRefs と組で値を復元する */
+    dictionary: unknown[];
   };
 };

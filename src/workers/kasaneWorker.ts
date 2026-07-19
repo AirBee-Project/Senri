@@ -114,7 +114,7 @@ function writeFinalBuffer(
 }
 
 function processWorkerPayload(payload: KasaneWorkerInput["payload"]) {
-  const { data, colors, defaultColor } = payload;
+  const { data, colors, dictionary, defaultColor } = payload;
   let totalCount = 0;
   for (const group of data) {
     for (const _rawSid of group.spatialIds) {
@@ -127,6 +127,7 @@ function processWorkerPayload(payload: KasaneWorkerInput["payload"]) {
   const elevations = new Float32Array(totalCount);
   const colorsArray = new Uint8Array(totalCount * 4);
   const voxelIds: string[] = new Array(totalCount);
+  const valueRefs = new Uint32Array(totalCount);
   let i = 0;
 
   for (const group of data) {
@@ -143,6 +144,7 @@ function processWorkerPayload(payload: KasaneWorkerInput["payload"]) {
         voxelIds,
         i,
       );
+      valueRefs[i] = group.valueRef;
       i++;
     }
   }
@@ -154,22 +156,23 @@ function processWorkerPayload(payload: KasaneWorkerInput["payload"]) {
     colorsArray,
   );
 
-  return { buffer, voxelIds, count: totalCount };
+  return { buffer, voxelIds, count: totalCount, valueRefs, dictionary };
 }
 
 self.onmessage = (e: MessageEvent<KasaneWorkerInput>) => {
   const { type, jobId, payload } = e.data;
 
   if (type === "PARSE_VOXELS") {
-    const { buffer, voxelIds, count } = processWorkerPayload(payload);
+    const { buffer, voxelIds, count, valueRefs, dictionary } =
+      processWorkerPayload(payload);
 
     self.postMessage(
       {
         type: "PARSE_VOXELS_RESULT",
         jobId,
-        payload: { buffer, voxelIds, count },
+        payload: { buffer, voxelIds, count, valueRefs, dictionary },
       },
-      { transfer: [buffer.buffer] },
+      { transfer: [buffer.buffer, valueRefs.buffer] },
     );
   }
 };

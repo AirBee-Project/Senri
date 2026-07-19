@@ -22,3 +22,10 @@ export const kasaneConfig = {
 export function isKasaneConfigured(): boolean {
   return Boolean(apiUrl && kasaneConfig.username && kasaneConfig.password);
 }
+
+/**
+ * ビューワーモード（?debugなし）でテーブル一覧を表示するデータベース名。
+ * 空文字の場合はサーバーの先頭のデータベースを使う。
+ */
+export const KASANE_DEFAULT_DATABASE: string =
+  import.meta.env.VITE_KASANE_DEFAULT_DB ?? "";

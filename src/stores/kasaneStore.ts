@@ -1,5 +1,9 @@
 import { create } from "zustand";
 import type { DatabaseInfo, TableInfo } from "../api/kasane/types";
+import type { RGBAColor } from "../types/geometry/color";
+
+/** 1テーブルあたりの観測値の保持上限（Text型で値が多すぎる場合の暴走防止） */
+const MAX_OBSERVED_VALUES = 200;
 
 /**
  * Kasane の選択状態と読み込み状態を管理するストア。
@@ -16,6 +20,12 @@ interface KasaneState {
   error: string | null;
   /** ズームアウトしすぎ等の案内メッセージ */
   notice: string | null;
+  /** テーブル名 → 表示ON/OFF（未設定は表示扱い） */
+  layerVisibility: Record<string, boolean>;
+  /** テーブル名 → 値(文字列化) → 上書き色 */
+  valueColors: Record<string, Record<string, RGBAColor>>;
+  /** テーブル名 → タイル読み込みで観測した値の一覧 */
+  observedValues: Record<string, (string | number | boolean)[]>;
 
   setDatabases: (databases: DatabaseInfo[]) => void;
   setTables: (tables: TableInfo[]) => void;
@@ -25,6 +35,13 @@ interface KasaneState {
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   setNotice: (notice: string | null) => void;
+  toggleLayerVisibility: (tableName: string) => void;
+  setValueColor: (
+    tableName: string,
+    valueKey: string,
+    color: RGBAColor,
+  ) => void;
+  registerObservedValues: (tableName: string, values: unknown[]) => void;
 }
 
 export const useKasaneStore = create<KasaneState>((set) => ({
@@ -36,6 +53,9 @@ export const useKasaneStore = create<KasaneState>((set) => ({
   loading: false,
   error: null,
   notice: null,
+  layerVisibility: {},
+  valueColors: {},
+  observedValues: {},
 
   setDatabases: (databases) => set({ databases }),
   setTables: (tables) => set({ tables }),
@@ -58,4 +78,41 @@ export const useKasaneStore = create<KasaneState>((set) => ({
   setLoading: (loading) => set({ loading }),
   setError: (error) => set({ error }),
   setNotice: (notice) => set({ notice }),
+  toggleLayerVisibility: (tableName) =>
+    set((state) => ({
+      layerVisibility: {
+        ...state.layerVisibility,
+        [tableName]: !(state.layerVisibility[tableName] ?? true),
+      },
+    })),
+  setValueColor: (tableName, valueKey, color) =>
+    set((state) => ({
+      valueColors: {
+        ...state.valueColors,
+        [tableName]: {
+          ...state.valueColors[tableName],
+          [valueKey]: color,
+        },
+      },
+    })),
+  registerObservedValues: (tableName, values) =>
+    set((state) => {
+      const current = state.observedValues[tableName] ?? [];
+      const known = new Set(current.map((v) => String(v)));
+      const added = values.filter(
+        (v): v is string | number | boolean =>
+          (typeof v === "string" ||
+            typeof v === "number" ||
+            typeof v === "boolean") &&
+          !known.has(String(v)),
+      );
+      if (added.length === 0 || current.length >= MAX_OBSERVED_VALUES)
+        return state;
+      return {
+        observedValues: {
+          ...state.observedValues,
+          [tableName]: [...current, ...added].slice(0, MAX_OBSERVED_VALUES),
+        },
+      };
+    }),
 }));

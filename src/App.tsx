@@ -1,10 +1,14 @@
 import madoriLogo from "/Madori_logo.png";
 import { DrawModeToolbar } from "./components/draw-mode-manager";
 import { FeatureManager } from "./components/feature-manager";
+import { TableListPanel, TablePanel } from "./components/kasane-viewer";
 import MapContainer from "./components/map/MapContainer";
 import { TimePanel } from "./components/time-manager";
 
 import { useMapStore } from "./stores/mapStore";
+
+// URLに ?debug をつけると開発者モード（従来の画面）に切り替わる
+const isDebugMode = new URLSearchParams(window.location.search).has("debug");
 
 function ZoomIndicator() {
   const zoom = useMapStore((state) => state.viewState.zoom);
@@ -29,39 +33,49 @@ function ZoomIndicator() {
 export default function App() {
   return (
     <div>
-      {/* featuremanager */}
-      <div style={{ position: "absolute", zIndex: 50 }}>
-        <FeatureManager />
-      </div>
+      {isDebugMode ? (
+        // 開発者モード: featureボタン群を表示
+        <div style={{ position: "absolute", zIndex: 50 }}>
+          <FeatureManager />
+        </div>
+      ) : (
+        // ビューワーモード: Kasaneのテーブルパネルとテーブル一覧のみ表示
+        <>
+          <TablePanel />
+          <TableListPanel />
+        </>
+      )}
 
       {/* logo & zoom info */}
-      <div
-        style={{
-          position: "absolute",
-          top: "1rem",
-          right: "1rem",
-          zIndex: 50,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "flex-end",
-          pointerEvents: "none",
-        }}
-      >
-        <img
-          src={madoriLogo}
-          alt="Senri Logo"
+      {isDebugMode && (
+        <div
           style={{
-            height: "40px", // adjust height as needed
-            marginBottom: "4px",
+            position: "absolute",
+            top: "1rem",
+            right: "1rem",
+            zIndex: 50,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-end",
+            pointerEvents: "none",
           }}
-        />
-        <ZoomIndicator />
-      </div>
+        >
+          <img
+            src={madoriLogo}
+            alt="Senri Logo"
+            style={{
+              height: "40px", // adjust height as needed
+              marginBottom: "4px",
+            }}
+          />
+          <ZoomIndicator />
+        </div>
+      )}
 
       {/* timebar */}
       <TimePanel />
 
-      {/* drawmodemanager */}
+      {/* drawmodemanager: ビューワーモードでは歯車に収納する */}
       <div
         style={{
           position: "absolute",
@@ -70,7 +84,7 @@ export default function App() {
           right: "1rem",
         }}
       >
-        <DrawModeToolbar />
+        <DrawModeToolbar collapsible={!isDebugMode} />
       </div>
 
       {/* map */}

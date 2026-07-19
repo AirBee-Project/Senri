@@ -58,3 +58,39 @@
   display: flex;
   align-items: center;
 }
+
+.inputsSection {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.5rem 0.5rem 0.25rem;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  flex: 1;
+}
+
+.inputLabel {
+  font-size: 0.625rem;
+  color: #6b7280;
+  font-weight: 600;
+  text-align: left;
+}
+
+.textInput {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.25rem 0.375rem;
+  border-radius: 0.25rem;
+  border: 1px solid #d1d5db;
+  background-color: #ffffff;
+  font-size: 0.8125rem;
+  color: #0f172a;
+  outline: none;
+
+  &:focus {
+    border-color: #0f766e;
+  }
+}
