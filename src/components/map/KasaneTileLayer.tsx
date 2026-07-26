@@ -14,6 +14,7 @@ export function useKasaneTileLayer() {
   const selectedTables = useKasaneStore((s) => s.selectedTables);
   const layerVisibility = useKasaneStore((s) => s.layerVisibility);
   const valueColors = useKasaneStore((s) => s.valueColors);
+  const cacheRevision = useKasaneStore((s) => s.cacheRevision);
   const setLoading = useKasaneStore((s) => s.setLoading);
 
   // 0 ⇔ 1 の境界でのみ Zustand に通知する。
@@ -48,7 +49,7 @@ export function useKasaneTileLayer() {
       const overridesTrigger = JSON.stringify(overrides ?? {});
 
       return new TileLayer<VoxelGeometry[]>({
-        id: `kasane-tile-layer-${selectedDb}-${selectedTable.name}`,
+        id: `kasane-tile-layer-${selectedDb}-${selectedTable.name}-${cacheRevision}`,
         data: null,
         visible: layerVisibility[selectedTable.name] ?? true,
         minZoom: 0,
@@ -97,7 +98,7 @@ export function useKasaneTileLayer() {
         },
 
         updateTriggers: {
-          getTileData: [selectedDb, selectedTable.name],
+          getTileData: [selectedDb, selectedTable.name, cacheRevision],
           // 色の上書きが変わったら、読み込み済みタイルのサブレイヤーを作り直して即反映する
           // （deck.glは関数プロップの参照変更を無視するため、トリガーで明示する必要がある）
           renderSubLayers: overridesTrigger,
@@ -109,6 +110,7 @@ export function useKasaneTileLayer() {
     selectedTables,
     layerVisibility,
     valueColors,
+    cacheRevision,
     incrementLoading,
     decrementLoading,
   ]);

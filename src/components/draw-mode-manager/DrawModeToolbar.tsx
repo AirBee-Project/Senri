@@ -1,5 +1,6 @@
 import {
   IconBorderOuter,
+  IconEraser,
   IconMap,
   IconPointer,
   IconRefresh,
@@ -7,6 +8,8 @@ import {
   IconView360Number,
 } from "@tabler/icons-react";
 import { useState } from "react";
+import { clearAllCache } from "../../api/kasane/cache";
+import { useKasaneStore } from "../../stores/kasaneStore";
 import { useMapStore } from "../../stores/mapStore";
 import { useSpatialIdGroupStore } from "../../stores/spatialIdGroupStores";
 import DrawModeButton from "./DrawModeButton";
@@ -60,6 +63,14 @@ export default function DrawModeToolbar({
             icon={IconView360Number}
             isActive={isAutoRotating}
             onClick={toggleAutoRotation}
+          />
+          <DrawModeButton
+            icon={IconEraser}
+            isActive={false}
+            onClick={async () => {
+              await clearAllCache();
+              useKasaneStore.getState().incrementCacheRevision();
+            }}
           />
         </>
       )}

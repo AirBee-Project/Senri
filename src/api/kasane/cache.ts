@@ -73,3 +73,10 @@ export async function saveTileToCache(
     console.warn("キャッシュへのタイルデータ保存に失敗しました", error);
   }
 }
+export async function clearAllCache(): Promise<void> {
+  try {
+    await kasaneCacheDb.tiles.clear();
+  } catch (error) {
+    console.warn("キャッシュクリアに失敗しました", error);
+  }
+}

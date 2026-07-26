@@ -228,7 +228,7 @@ async function fetchAndProcessTileData(
 }
 
 export async function fetchTileDataForLayer(
-  tile: any,
+  tile: { index: { x: number; y: number; z: number }; signal?: AbortSignal },
   selectedDb: string,
   table: TableInfo,
   workerPool: Worker[],
