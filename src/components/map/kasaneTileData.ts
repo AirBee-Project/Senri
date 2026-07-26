@@ -1,4 +1,4 @@
-import { searchData } from "../../api/kasane/api";
+import { executeQuery } from "../../api/kasane/api";
 import {
   type CachedTilePayload,
   getCachedTile,
@@ -194,11 +194,34 @@ async function fetchAndProcessTileData(
     geometries = unpackGeometries(cachedPayload);
     dictionary = cachedPayload.dictionary;
   } else {
-    const response = await searchData(
-      selectedDb,
-      table.name,
+    // デバッグ用: searchDataの代わりにexecuteQueryを使用し、ここでQueryを自由にJSONで調整できるようにする
+    const debugQuery = {
+      input: {
+        input: {
+          input: {
+            database: selectedDb,
+            table: table.name,
+            type: "source",
+          },
+          policy: "average",
+          type: "zoomOut",
+          z: 23,
+        },
+        policy: "max",
+        radius: 3,
+        type: "falloffLinearX",
+        z: 23,
+      },
+      policy: "max",
+      radius: 3,
+      type: "falloffLinearY",
+      z: 23,
+    };
+
+    const response = await executeQuery(
+      debugQuery,
       [rangeId],
-      "Normalize",
+      table.data_type,
       signal,
     );
 
@@ -228,6 +251,7 @@ async function fetchAndProcessTileData(
 }
 
 export async function fetchTileDataForLayer(
+  // biome-ignore lint/suspicious/noExplicitAny: DeckGL tile type is complex
   tile: any,
   selectedDb: string,
   table: TableInfo,

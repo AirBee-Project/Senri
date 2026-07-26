@@ -37,17 +37,30 @@ export const SpatialDataSchema = z.object({
 });
 export type SpatialData = z.infer<typeof SpatialDataSchema>;
 
+export const SpatialIdSchema = z.any();
+
 export const DataGroupSchema = z.object({
   valueRef: z.number().int(),
-  spatialIds: z.array(z.any()),
+  spatialIds: z.array(SpatialIdSchema),
 });
 export type DataGroup = z.infer<typeof DataGroupSchema>;
 
 export const GetDataResponseSchema = z.object({
-  dictionary: z.array(z.any()).default([]),
-  data: z.array(DataGroupSchema).default([]),
+  dictionary: z.array(z.unknown()),
+  data: z.array(DataGroupSchema),
 });
 export type GetDataResponse = z.infer<typeof GetDataResponseSchema>;
+
+// For debugging/manual adjustment, we define QueryNode as any for flexibility.
+// biome-ignore lint/suspicious/noExplicitAny: flexibility for debugging
+export type QueryNode = any;
+
+export const ExecuteQueryRequestSchema = z.object({
+  value_type: TableDataTypeSchema.nullable().optional(),
+  spatial_ids: z.array(SpatialIdSchema),
+  query: z.any(), // QueryNode
+});
+export type ExecuteQueryRequest = z.infer<typeof ExecuteQueryRequestSchema>;
 
 export const LoginResponseSchema = z.object({
   token: z.string(),
