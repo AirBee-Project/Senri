@@ -27,6 +27,9 @@ interface KasaneState {
   /** テーブル名 → タイル読み込みで観測した値の一覧 */
   observedValues: Record<string, (string | number | boolean)[]>;
 
+  /** キャッシュクリア時にインクリメントしてDeckGLに再フェッチさせる */
+  cacheRevision: number;
+
   setDatabases: (databases: DatabaseInfo[]) => void;
   setTables: (tables: TableInfo[]) => void;
   selectDb: (db: string | null) => void;
@@ -42,6 +45,7 @@ interface KasaneState {
     color: RGBAColor,
   ) => void;
   registerObservedValues: (tableName: string, values: unknown[]) => void;
+  incrementCacheRevision: () => void;
 }
 
 export const useKasaneStore = create<KasaneState>((set) => ({
@@ -56,6 +60,7 @@ export const useKasaneStore = create<KasaneState>((set) => ({
   layerVisibility: {},
   valueColors: {},
   observedValues: {},
+  cacheRevision: 0,
 
   setDatabases: (databases) => set({ databases }),
   setTables: (tables) => set({ tables }),
@@ -115,4 +120,6 @@ export const useKasaneStore = create<KasaneState>((set) => ({
         },
       };
     }),
+  incrementCacheRevision: () =>
+    set((state) => ({ cacheRevision: state.cacheRevision + 1 })),
 }));
