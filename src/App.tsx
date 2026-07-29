@@ -1,4 +1,4 @@
-import madoriLogo from "/Madori_logo.png";
+import madoriLogo from "/Senri_logo.png";
 import { DrawModeToolbar } from "./components/draw-mode-manager";
 import { FeatureManager } from "./components/feature-manager";
 import { TableListPanel, TablePanel } from "./components/kasane-viewer";
