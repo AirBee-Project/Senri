@@ -39,8 +39,8 @@ const DataGroupSchema = z.object({
 export type DataGroup = z.infer<typeof DataGroupSchema>;
 
 export const GetDataResponseSchema = z.object({
-  dictionary: z.array(z.any()).default([]),
-  data: z.array(DataGroupSchema).default([]),
+  dictionary: z.array(z.unknown()),
+  data: z.array(DataGroupSchema),
 });
 export type GetDataResponse = z.infer<typeof GetDataResponseSchema>;
 
