@@ -26,6 +26,11 @@ interface KasaneState {
   valueColors: Record<string, Record<string, RGBAColor>>;
   /** テーブル名 → タイル読み込みで観測した値の一覧 */
   observedValues: Record<string, (string | number | boolean)[]>;
+  /** テーブル名 → Queryモード時のバッファ設定 */
+  queryConfigs: Record<
+    string,
+    { radiusX: number; radiusY: number; zoomOutLevel: number }
+  >;
 
   /** キャッシュクリア時にインクリメントしてDeckGLに再フェッチさせる */
   cacheRevision: number;
@@ -45,6 +50,12 @@ interface KasaneState {
     color: RGBAColor,
   ) => void;
   registerObservedValues: (tableName: string, values: unknown[]) => void;
+  setQueryConfig: (
+    tableName: string,
+    radiusX: number,
+    radiusY: number,
+    zoomOutLevel: number,
+  ) => void;
   incrementCacheRevision: () => void;
 }
 
@@ -60,6 +71,7 @@ export const useKasaneStore = create<KasaneState>((set) => ({
   layerVisibility: {},
   valueColors: {},
   observedValues: {},
+  queryConfigs: {},
   cacheRevision: 0,
 
   setDatabases: (databases) => set({ databases }),
@@ -120,6 +132,13 @@ export const useKasaneStore = create<KasaneState>((set) => ({
         },
       };
     }),
+  setQueryConfig: (tableName, radiusX, radiusY, zoomOutLevel) =>
+    set((state) => ({
+      queryConfigs: {
+        ...state.queryConfigs,
+        [tableName]: { radiusX, radiusY, zoomOutLevel },
+      },
+    })),
   incrementCacheRevision: () =>
     set((state) => ({ cacheRevision: state.cacheRevision + 1 })),
 }));

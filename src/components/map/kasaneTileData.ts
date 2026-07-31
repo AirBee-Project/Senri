@@ -1,4 +1,4 @@
-import { searchData } from "../../api/kasane/api";
+import { executeQuery, searchData } from "../../api/kasane/api";
 import {
   type CachedTilePayload,
   getCachedTile,
@@ -180,6 +180,9 @@ async function fetchAndProcessTileData(
   selectedDb: string,
   table: TableInfo,
   rangeId: RangeId,
+  queryConfig:
+    | { radiusX: number; radiusY: number; zoomOutLevel: number }
+    | undefined,
   workerPool: Worker[],
   signal?: AbortSignal,
 ): Promise<VoxelGeometry[]> {
@@ -194,13 +197,40 @@ async function fetchAndProcessTileData(
     geometries = unpackGeometries(cachedPayload);
     dictionary = cachedPayload.dictionary;
   } else {
-    const response = await searchData(
-      selectedDb,
-      table.name,
-      [rangeId],
-      "Normalize",
-      signal,
-    );
+    let response: GetDataResponse;
+    if (queryConfig) {
+      const query = {
+        input: {
+          input: {
+            input: {
+              database: selectedDb,
+              table: table.name,
+              type: "source",
+            },
+            policy: "average",
+            type: "zoomOut",
+            z: queryConfig.zoomOutLevel,
+          },
+          policy: "max",
+          radius: queryConfig.radiusX,
+          type: "falloffLinearX",
+          z: queryConfig.zoomOutLevel,
+        },
+        policy: "max",
+        radius: queryConfig.radiusY,
+        type: "falloffLinearY",
+        z: queryConfig.zoomOutLevel,
+      };
+      response = await executeQuery(query, [rangeId], table.data_type, signal);
+    } else {
+      response = await searchData(
+        selectedDb,
+        table.name,
+        [rangeId],
+        "Normalize",
+        signal,
+      );
+    }
 
     if (response.data.length === 0) {
       return [];
@@ -216,7 +246,7 @@ async function fetchAndProcessTileData(
     geometries = result.geometries;
     dictionary = result.payload.dictionary;
 
-    await saveTileToCache(cacheKey, result.payload);
+    void saveTileToCache(cacheKey, result.payload);
   }
 
   // 値ごとの色設定UIで使うため、このテーブルで観測した値を記録する
@@ -231,6 +261,9 @@ export async function fetchTileDataForLayer(
   tile: { index: { x: number; y: number; z: number }; signal?: AbortSignal },
   selectedDb: string,
   table: TableInfo,
+  queryConfig:
+    | { radiusX: number; radiusY: number; zoomOutLevel: number }
+    | undefined,
   workerPool: Worker[],
   incrementLoading: () => void,
   decrementLoading: () => void,
@@ -243,7 +276,10 @@ export async function fetchTileDataForLayer(
     return [];
   }
 
-  const cacheKey = `${selectedDb}-${table.name}-${z}-${x}-${y}`;
+  const queryKey = queryConfig
+    ? `-${queryConfig.radiusX}-${queryConfig.radiusY}-${queryConfig.zoomOutLevel}`
+    : "";
+  const cacheKey = `${selectedDb}-${table.name}${queryKey}-${z}-${x}-${y}`;
 
   incrementLoading();
   try {
@@ -252,6 +288,7 @@ export async function fetchTileDataForLayer(
       selectedDb,
       table,
       rangeId,
+      queryConfig,
       workerPool,
       signal,
     );

@@ -5,6 +5,12 @@ import type { VoxelGeometry } from "../../types/geometry/spatioTemporalId/voxelG
 import { createPolygonLayer, createScatterLayer } from "./kasaneSublayers";
 import { createWorker, fetchTileDataForLayer } from "./kasaneTileData";
 
+/** Queryモードの最小ズーム。*/
+const QUERY_MIN_ZOOM = 17;
+
+/** Queryモードは1段細かいタイルで取る。粗い1枚より細かい複数枚のほうがサーバーが速い */
+const QUERY_ZOOM_OFFSET = 1;
+
 /**
  * kasaneStore で選択中のテーブルを deck.gl の TileLayer 群へ変換するフック。
  * データ取得は kasaneTileData、サブレイヤー生成は kasaneSublayers に分離している。
@@ -14,6 +20,7 @@ export function useKasaneTileLayer() {
   const selectedTables = useKasaneStore((s) => s.selectedTables);
   const layerVisibility = useKasaneStore((s) => s.layerVisibility);
   const valueColors = useKasaneStore((s) => s.valueColors);
+  const queryConfigs = useKasaneStore((s) => s.queryConfigs);
   const cacheRevision = useKasaneStore((s) => s.cacheRevision);
   const setLoading = useKasaneStore((s) => s.setLoading);
 
@@ -47,15 +54,18 @@ export function useKasaneTileLayer() {
     return selectedTables.map((selectedTable) => {
       const overrides = valueColors[selectedTable.name];
       const overridesTrigger = JSON.stringify(overrides ?? {});
+      const queryConfig = queryConfigs[selectedTable.name];
+      const queryTrigger = JSON.stringify(queryConfig ?? {});
 
       return new TileLayer<VoxelGeometry[]>({
-        id: `kasane-tile-layer-${selectedDb}-${selectedTable.name}-${cacheRevision}`,
+        id: `kasane-tile-layer-${selectedDb}-${selectedTable.name}-${cacheRevision}-${queryTrigger}`,
         data: null,
         visible: layerVisibility[selectedTable.name] ?? true,
-        minZoom: 0,
+        minZoom: queryConfig ? QUERY_MIN_ZOOM : 0,
         maxZoom: selectedTable.max_zoom_level,
+        zoomOffset: queryConfig ? QUERY_ZOOM_OFFSET : 0,
         tileSize: 256,
-        maxCacheSize: 10, // GPUクラッシュを防ぐため、画面外のタイルを即座に破棄
+        maxCacheSize: 48,
         maxRequests: 4, // サーバーのパンク（ERR_CONNECTION_REFUSED）を防ぐための同時リクエスト数制限
 
         refinementStrategy: "best-available",
@@ -66,6 +76,7 @@ export function useKasaneTileLayer() {
             tile,
             selectedDb,
             selectedTable,
+            queryConfig,
             workerPool.current,
             incrementLoading,
             decrementLoading,
@@ -98,7 +109,12 @@ export function useKasaneTileLayer() {
         },
 
         updateTriggers: {
-          getTileData: [selectedDb, selectedTable.name, cacheRevision],
+          getTileData: [
+            selectedDb,
+            selectedTable.name,
+            cacheRevision,
+            queryTrigger,
+          ],
           // 色の上書きが変わったら、読み込み済みタイルのサブレイヤーを作り直して即反映する
           // （deck.glは関数プロップの参照変更を無視するため、トリガーで明示する必要がある）
           renderSubLayers: overridesTrigger,
@@ -110,6 +126,7 @@ export function useKasaneTileLayer() {
     selectedTables,
     layerVisibility,
     valueColors,
+    queryConfigs,
     cacheRevision,
     incrementLoading,
     decrementLoading,

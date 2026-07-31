@@ -4,16 +4,21 @@ import {
   IconEye,
   IconEyeOff,
 } from "@tabler/icons-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { TableInfo } from "../../api/kasane/types";
+import { useClickOutside } from "../../hooks/useClickOutside";
 import { useKasaneStore } from "../../stores/kasaneStore";
 import IconButton from "../feature-manager/common-ui/IconButton";
+import BufferConfigPanel from "./BufferConfigPanel";
 import styles from "./TableListPanel.module.scss";
 import ValueColorPanel from "./ValueColorPanel";
 
-/** 値ごとの色編集に対応しているデータ型（boolean/string） */
-function isValueColorEditable(table: TableInfo): boolean {
-  return table.data_type === "Boolean" || table.data_type === "Text";
+/** 値ごとの色編集またはバッファ設定に対応しているか判定 */
+function isTableEditable(table: TableInfo, isQueryMode: boolean): boolean {
+  if (table.data_type === "Boolean" || table.data_type === "Text") return true;
+  if (isQueryMode && (table.data_type === "Int" || table.data_type === "Float"))
+    return true;
+  return false;
 }
 
 /**
@@ -28,13 +33,38 @@ export default function TableListPanel() {
   const toggleTable = useKasaneStore((s) => s.toggleTable);
   const toggleLayerVisibility = useKasaneStore((s) => s.toggleLayerVisibility);
 
+  const isQueryMode = new URLSearchParams(window.location.search).has("query");
   const [editingTableName, setEditingTableName] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useClickOutside(containerRef, () => {
+    if (editingTableName !== null) {
+      setEditingTableName(null);
+    }
+  });
 
   const editingTable =
     selectedTables.find((t) => t.name === editingTableName) ?? null;
 
+  const renderEditingPanel = () => {
+    if (!editingTable) return null;
+    if (
+      editingTable.data_type === "Boolean" ||
+      editingTable.data_type === "Text"
+    ) {
+      return <ValueColorPanel table={editingTable} />;
+    }
+    if (
+      isQueryMode &&
+      (editingTable.data_type === "Int" || editingTable.data_type === "Float")
+    ) {
+      return <BufferConfigPanel table={editingTable} />;
+    }
+    return null;
+  };
+
   return (
-    <>
+    <div ref={containerRef}>
       <div className={styles.panel}>
         <h2 className={styles.heading}>テーブル一覧</h2>
         <div className={styles.list}>
@@ -60,8 +90,8 @@ export default function TableListPanel() {
                       onClick={() =>
                         setEditingTableName(isEditing ? null : table.name)
                       }
-                      ariaLabel={`${table.name}の値ごとの色を編集`}
-                      disabled={!isValueColorEditable(table)}
+                      ariaLabel={`${table.name}の表示設定を編集`}
+                      disabled={!isTableEditable(table, isQueryMode)}
                     >
                       <IconEdit />
                     </IconButton>
@@ -88,7 +118,7 @@ export default function TableListPanel() {
           )}
         </div>
       </div>
-      {editingTable && <ValueColorPanel table={editingTable} />}
-    </>
+      {renderEditingPanel()}
+    </div>
   );
 }

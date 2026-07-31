@@ -49,6 +49,15 @@ export const GetDataResponseSchema = z.object({
 });
 export type GetDataResponse = z.infer<typeof GetDataResponseSchema>;
 
+export type QueryNode = any;
+
+export const ExecuteQueryRequestSchema = z.object({
+  value_type: TableDataTypeSchema.nullable().optional(),
+  spatial_ids: z.array(z.any()),
+  query: z.any(),
+});
+export type ExecuteQueryRequest = z.infer<typeof ExecuteQueryRequestSchema>;
+
 export const LoginResponseSchema = z.object({
   token: z.string(),
 });
