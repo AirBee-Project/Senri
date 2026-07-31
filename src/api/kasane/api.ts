@@ -2,9 +2,12 @@ import { kasaneFetch } from "./client";
 import {
   type DatabaseInfo,
   DatabaseListSchema,
+  type ExecuteQueryRequest,
   type GetDataResponse,
   GetDataResponseSchema,
+  type QueryNode,
   type SpatialIdRequest,
+  type TableDataType,
   type TableInfo,
   TableListSchema,
   type ZoomLevelPolicy,
@@ -50,4 +53,22 @@ export async function searchData(
     },
   );
   return res;
+}
+
+export async function executeQuery(
+  query: QueryNode,
+  spatialIds: SpatialIdRequest[],
+  valueType?: TableDataType,
+  signal?: AbortSignal,
+): Promise<GetDataResponse> {
+  return kasaneFetch("/query?format=rangeId", {
+    method: "POST",
+    body: {
+      spatial_ids: spatialIds,
+      query,
+      value_type: valueType ?? null,
+    } as ExecuteQueryRequest,
+    schema: GetDataResponseSchema,
+    signal,
+  });
 }

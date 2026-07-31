@@ -10,15 +10,6 @@ export type TableDataType = z.infer<typeof TableDataTypeSchema>;
 export const ZoomLevelPolicySchema = z.enum(["Error", "Ignore", "Normalize"]);
 export type ZoomLevelPolicy = z.infer<typeof ZoomLevelPolicySchema>;
 
-/** 単一セルの時空間ID */
-export const SingleIdSchema = z.object({
-  z: z.number().int(),
-  f: z.number().int(),
-  x: z.number().int(),
-  y: z.number().int(),
-});
-export type SingleId = z.infer<typeof SingleIdSchema>;
-
 /** 範囲指定の時空間ID（リクエストで使用） */
 export type RangeId = {
   z: number;
@@ -31,21 +22,25 @@ export type RangeId = {
 /** /data/search に渡す空間ID（今回は範囲指定のみ使用） */
 export type SpatialIdRequest = RangeId;
 
-export const SpatialDataSchema = z.object({
-  id: SingleIdSchema,
-  data: z.unknown(),
-});
-export type SpatialData = z.infer<typeof SpatialDataSchema>;
+// biome-ignore lint/suspicious/noExplicitAny: クエリを手で組み立てられるようにするため
+export type QueryNode = any;
 
-export const DataGroupSchema = z.object({
+/** /query のリクエストボディ */
+export type ExecuteQueryRequest = {
+  value_type?: TableDataType | null;
+  spatial_ids: SpatialIdRequest[];
+  query: QueryNode;
+};
+
+const DataGroupSchema = z.object({
   valueRef: z.number().int(),
   spatialIds: z.array(z.any()),
 });
 export type DataGroup = z.infer<typeof DataGroupSchema>;
 
 export const GetDataResponseSchema = z.object({
-  dictionary: z.array(z.any()).default([]),
-  data: z.array(DataGroupSchema).default([]),
+  dictionary: z.array(z.unknown()),
+  data: z.array(DataGroupSchema),
 });
 export type GetDataResponse = z.infer<typeof GetDataResponseSchema>;
 
