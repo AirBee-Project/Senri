@@ -4,10 +4,10 @@ import { z } from "zod";
  * Kasane OpenAPI (openapi.yaml) の components を写した zod スキーマ・型。
  */
 
-const TableDataTypeSchema = z.enum(["Text", "Int", "Float", "Boolean"]);
+export const TableDataTypeSchema = z.enum(["Text", "Int", "Float", "Boolean"]);
 export type TableDataType = z.infer<typeof TableDataTypeSchema>;
 
-const ZoomLevelPolicySchema = z.enum(["Error", "Ignore", "Normalize"]);
+export const ZoomLevelPolicySchema = z.enum(["Error", "Ignore", "Normalize"]);
 export type ZoomLevelPolicy = z.infer<typeof ZoomLevelPolicySchema>;
 
 /** 範囲指定の時空間ID（リクエストで使用） */
@@ -48,13 +48,13 @@ export const LoginResponseSchema = z.object({
   token: z.string(),
 });
 
-const DatabaseInfoResponseSchema = z.object({
+export const DatabaseInfoResponseSchema = z.object({
   name: z.string(),
 });
 export type DatabaseInfo = z.infer<typeof DatabaseInfoResponseSchema>;
 export const DatabaseListSchema = z.array(DatabaseInfoResponseSchema);
 
-const TableInfoResponseSchema = z.object({
+export const TableInfoResponseSchema = z.object({
   name: z.string(),
   data_type: TableDataTypeSchema,
   max_zoom_level: z.number().int(),
