@@ -13,6 +13,8 @@ import BufferConfigPanel from "./BufferConfigPanel";
 import styles from "./TableListPanel.module.scss";
 import ValueColorPanel from "./ValueColorPanel";
 
+const isQueryMode = new URLSearchParams(window.location.search).has("query");
+
 /** 値ごとの色編集またはバッファ設定に対応しているか判定 */
 function isTableEditable(table: TableInfo, isQueryMode: boolean): boolean {
   if (table.data_type === "Boolean" || table.data_type === "Text") return true;
@@ -33,7 +35,6 @@ export default function TableListPanel() {
   const toggleTable = useKasaneStore((s) => s.toggleTable);
   const toggleLayerVisibility = useKasaneStore((s) => s.toggleLayerVisibility);
 
-  const isQueryMode = new URLSearchParams(window.location.search).has("query");
   const [editingTableName, setEditingTableName] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
