@@ -4,20 +4,11 @@ import { z } from "zod";
  * Kasane OpenAPI (openapi.yaml) の components を写した zod スキーマ・型。
  */
 
-export const TableDataTypeSchema = z.enum(["Text", "Int", "Float", "Boolean"]);
+const TableDataTypeSchema = z.enum(["Text", "Int", "Float", "Boolean"]);
 export type TableDataType = z.infer<typeof TableDataTypeSchema>;
 
-export const ZoomLevelPolicySchema = z.enum(["Error", "Ignore", "Normalize"]);
+const ZoomLevelPolicySchema = z.enum(["Error", "Ignore", "Normalize"]);
 export type ZoomLevelPolicy = z.infer<typeof ZoomLevelPolicySchema>;
-
-/** 単一セルの時空間ID */
-export const SingleIdSchema = z.object({
-  z: z.number().int(),
-  f: z.number().int(),
-  x: z.number().int(),
-  y: z.number().int(),
-});
-export type SingleId = z.infer<typeof SingleIdSchema>;
 
 /** 範囲指定の時空間ID（リクエストで使用） */
 export type RangeId = {
@@ -31,13 +22,17 @@ export type RangeId = {
 /** /data/search に渡す空間ID（今回は範囲指定のみ使用） */
 export type SpatialIdRequest = RangeId;
 
-export const SpatialDataSchema = z.object({
-  id: SingleIdSchema,
-  data: z.unknown(),
-});
-export type SpatialData = z.infer<typeof SpatialDataSchema>;
+// biome-ignore lint/suspicious/noExplicitAny: クエリを手で組み立てられるようにするため
+export type QueryNode = any;
 
-export const DataGroupSchema = z.object({
+/** /query のリクエストボディ */
+export type ExecuteQueryRequest = {
+  value_type?: TableDataType | null;
+  spatial_ids: SpatialIdRequest[];
+  query: QueryNode;
+};
+
+const DataGroupSchema = z.object({
   valueRef: z.number().int(),
   spatialIds: z.array(z.any()),
 });
@@ -49,26 +44,17 @@ export const GetDataResponseSchema = z.object({
 });
 export type GetDataResponse = z.infer<typeof GetDataResponseSchema>;
 
-export type QueryNode = any;
-
-export const ExecuteQueryRequestSchema = z.object({
-  value_type: TableDataTypeSchema.nullable().optional(),
-  spatial_ids: z.array(z.any()),
-  query: z.any(),
-});
-export type ExecuteQueryRequest = z.infer<typeof ExecuteQueryRequestSchema>;
-
 export const LoginResponseSchema = z.object({
   token: z.string(),
 });
 
-export const DatabaseInfoResponseSchema = z.object({
+const DatabaseInfoResponseSchema = z.object({
   name: z.string(),
 });
 export type DatabaseInfo = z.infer<typeof DatabaseInfoResponseSchema>;
 export const DatabaseListSchema = z.array(DatabaseInfoResponseSchema);
 
-export const TableInfoResponseSchema = z.object({
+const TableInfoResponseSchema = z.object({
   name: z.string(),
   data_type: TableDataTypeSchema,
   max_zoom_level: z.number().int(),
