@@ -65,8 +65,8 @@ export function useKasaneTileLayer() {
         maxZoom: selectedTable.max_zoom_level,
         zoomOffset: queryConfig ? QUERY_ZOOM_OFFSET : 0,
         tileSize: 256,
-        maxCacheSize: 48,
-        maxRequests: 4, // サーバーのパンク（ERR_CONNECTION_REFUSED）を防ぐための同時リクエスト数制限
+        maxCacheSize: 100,
+        maxRequests: 20, // サーバーのパンク（ERR_CONNECTION_REFUSED）を防ぐための同時リクエスト数制限
 
         refinementStrategy: "best-available",
 

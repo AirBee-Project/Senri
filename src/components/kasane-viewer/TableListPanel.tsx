@@ -15,12 +15,15 @@ import ValueColorPanel from "./ValueColorPanel";
 
 const isQueryMode = new URLSearchParams(window.location.search).has("query");
 
+/** 数値型（ヒートマップ描画・バッファ設定の対象）か判定 */
+function isNumericDataType(dataType: TableInfo["data_type"]): boolean {
+  return dataType === "Int" || dataType === "Float";
+}
+
 /** 値ごとの色編集またはバッファ設定に対応しているか判定 */
 function isTableEditable(table: TableInfo, isQueryMode: boolean): boolean {
-  if (table.data_type === "Boolean" || table.data_type === "Text") return true;
-  if (isQueryMode && (table.data_type === "Int" || table.data_type === "Float"))
-    return true;
-  return false;
+  if (!isNumericDataType(table.data_type)) return true;
+  return isQueryMode;
 }
 
 /**
@@ -49,16 +52,10 @@ export default function TableListPanel() {
 
   const renderEditingPanel = () => {
     if (!editingTable) return null;
-    if (
-      editingTable.data_type === "Boolean" ||
-      editingTable.data_type === "Text"
-    ) {
+    if (!isNumericDataType(editingTable.data_type)) {
       return <ValueColorPanel table={editingTable} />;
     }
-    if (
-      isQueryMode &&
-      (editingTable.data_type === "Int" || editingTable.data_type === "Float")
-    ) {
+    if (isQueryMode) {
       return <BufferConfigPanel table={editingTable} />;
     }
     return null;

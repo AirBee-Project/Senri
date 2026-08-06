@@ -4,7 +4,14 @@ import { z } from "zod";
  * Kasane OpenAPI (openapi.yaml) の components を写した zod スキーマ・型。
  */
 
-export const TableDataTypeSchema = z.enum(["Text", "Int", "Float", "Boolean"]);
+export const TableDataTypeSchema = z.enum([
+  "Text",
+  "Int",
+  "Float",
+  "Boolean",
+  "Enum",
+  "Presence",
+]);
 export type TableDataType = z.infer<typeof TableDataTypeSchema>;
 
 export const ZoomLevelPolicySchema = z.enum(["Error", "Ignore", "Normalize"]);
